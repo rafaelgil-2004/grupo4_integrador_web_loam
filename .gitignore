@@ -1,0 +1,14 @@
+# Backend
+backend/target/
+backend/src/main/resources/application.properties
+backend/almacenamiento/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# App
+node_modules/
+.expo/
+.env
