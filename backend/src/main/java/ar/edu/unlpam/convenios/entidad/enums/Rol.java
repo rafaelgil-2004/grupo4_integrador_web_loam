@@ -1,7 +1,7 @@
 package ar.edu.unlpam.convenios.entidad.enums;
 
 public enum Rol{
-    AMINISTRACION,
+    ADMINISTRACION,
     GESTION,
     ESTUDIANTE,
     PROFESOR,
