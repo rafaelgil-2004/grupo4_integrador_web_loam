@@ -1,10 +1,31 @@
+package ar.edu.unlpam.convenios.servicio;
+
+import java.util.List;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import ar.edu.unlpam.convenios.dto.UsuarioSolicitud;
+import ar.edu.unlpam.convenios.entidad.Usuario;
+import ar.edu.unlpam.convenios.entidad.enums.Rol;
+import ar.edu.unlpam.convenios.excepcion.ConflictoException;
+import ar.edu.unlpam.convenios.excepcion.NoAutenticadoException;
+import ar.edu.unlpam.convenios.excepcion.NoEncontradoException;
+import ar.edu.unlpam.convenios.excepcion.SolicitudInvalidaException;
+import ar.edu.unlpam.convenios.repositorio.UnidadRepositorio;
+import ar.edu.unlpam.convenios.repositorio.UsuarioRepositorio;
+import ar.edu.unlpam.convenios.seguridad.UsuarioAutenticado;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
+@RequiredArgsConstructor 
 public class UsuarioServicio {
 
-    @Autowired private UsuarioRepositorio usuarioRepo;
-    @Autowired private UnidadRepositorio unidadRepo;
-    @Autowired private PasswordEncoder codificador;
+    private UsuarioRepositorio usuarioRepo;
+    private UnidadRepositorio unidadRepo;
+    private PasswordEncoder codificador;
 
     public static boolean esDeConsulta(Rol rol) {
         return rol != Rol.ADMINISTRACION && rol != Rol.GESTION;
@@ -21,7 +42,7 @@ public class UsuarioServicio {
             ? usuarioRepo.findAll() : usuarioRepo.buscarPorTexto(q.trim());
         // Gestión solo necesita elegir firmantes: usuarios activos de consulta
         if (UsuarioAutenticado.actual().rol() == Rol.GESTION) {
-            lista = lista.stream().filter(u -> u.isActivo() && esDeConsulta(u.getRol())).toList();
+            lista = lista.stream().filter(u -> u.getActivo() && esDeConsulta(u.getRol())).toList();
         }
         return lista.stream().filter(u -> rol == null || u.getRol() == rol).toList();
     }

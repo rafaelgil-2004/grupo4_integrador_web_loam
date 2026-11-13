@@ -1,14 +1,43 @@
+package ar.edu.unlpam.convenios.servicio;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.HexFormat;
+import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import ar.edu.unlpam.convenios.entidad.Convenio;
+import ar.edu.unlpam.convenios.entidad.Documento;
+import ar.edu.unlpam.convenios.entidad.Usuario;
+import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
+import ar.edu.unlpam.convenios.excepcion.ConflictoException;
+import ar.edu.unlpam.convenios.excepcion.NoEncontradoException;
+import ar.edu.unlpam.convenios.excepcion.SolicitudInvalidaException;
+import ar.edu.unlpam.convenios.repositorio.DocumentoRepositorio;
+import org.apache.pdfbox.Loader;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
+@RequiredArgsConstructor 
 public class DocumentoServicio {
 
     private static final int LIMITE_BYTES = 20 * 1024 * 1024;
 
-    @Autowired private DocumentoRepositorio documentoRepo;
-    @Autowired private ConvenioServicio convenioServicio;
-    @Autowired private UsuarioServicio usuarioServicio;
-    @Autowired private AlmacenamientoServicio almacenamiento;
-    @Autowired private HistorialServicio historialServicio;
+    private DocumentoRepositorio documentoRepo;
+    private ConvenioServicio convenioServicio;
+    private UsuarioServicio usuarioServicio;
+    private AlmacenamientoServicio almacenamiento;
+    private HistorialServicio historialServicio;
 
     public Documento subir(Long convenioId, MultipartFile archivo) {
         Convenio c = convenioServicio.obtenerVisible(convenioId);

@@ -1,21 +1,69 @@
+package ar.edu.unlpam.convenios.servicio;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import ar.edu.unlpam.convenios.dto.ArbolNodo;
+import ar.edu.unlpam.convenios.dto.ConvenioRespuesta;
+import ar.edu.unlpam.convenios.dto.ConvenioSolicitud;
+import ar.edu.unlpam.convenios.entidad.Convenio;
+import ar.edu.unlpam.convenios.entidad.ConvenioImplicado;
+import ar.edu.unlpam.convenios.entidad.Documento;
+import ar.edu.unlpam.convenios.entidad.Historial;
+import ar.edu.unlpam.convenios.entidad.Usuario;
+import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
+import ar.edu.unlpam.convenios.entidad.enums.Rol;
+import ar.edu.unlpam.convenios.entidad.enums.Subtipo;
+import ar.edu.unlpam.convenios.entidad.enums.TipoConvenio;
+import ar.edu.unlpam.convenios.excepcion.ConflictoException;
+import ar.edu.unlpam.convenios.excepcion.NoEncontradoException;
+import ar.edu.unlpam.convenios.excepcion.SinPermisoException;
+import ar.edu.unlpam.convenios.excepcion.SolicitudInvalidaException;
+import ar.edu.unlpam.convenios.repositorio.ConvenioImplicadoRepositorio;
+import ar.edu.unlpam.convenios.repositorio.ConvenioRepositorio;
+import ar.edu.unlpam.convenios.repositorio.DocumentoRepositorio;
+import ar.edu.unlpam.convenios.repositorio.UnidadRepositorio;
+import ar.edu.unlpam.convenios.repositorio.UsuarioRepositorio;
+import ar.edu.unlpam.convenios.seguridad.UsuarioAutenticado;
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
+@RequiredArgsConstructor 
 public class ConvenioServicio {
 
-    @Autowired private ConvenioRepositorio convenioRepo;
-    @Autowired private ConvenioImplicadoRepositorio implicadoRepo;
-    @Autowired private DocumentoRepositorio documentoRepo;
-    @Autowired private UsuarioRepositorio usuarioRepo;
-    @Autowired private UnidadRepositorio unidadRepo;
-    @Autowired private HistorialServicio historialServicio;
-    @Autowired private AlmacenamientoServicio almacenamiento;
+    private ConvenioRepositorio convenioRepo;
+    private ConvenioImplicadoRepositorio implicadoRepo;
+    private DocumentoRepositorio documentoRepo;
+    private UsuarioRepositorio usuarioRepo;
+    private UnidadRepositorio unidadRepo;
+    private HistorialServicio historialServicio;
+    private AlmacenamientoServicio almacenamiento;
 
-    @Value("${convenios.dias-por-vencer}")
+    @Value("${convenios.dias-por-vencer:30}")
     private int diasPorVencer;
 
     // ================= Visibilidad y permisos =================
 
     // Todo parte de acá: Admin ve todo, Gestión su unidad, Consulta los suyos (sin borradores)
+    @Transactional(readOnly = true)
     public List<Convenio> visibles() {
         UsuarioAutenticado u = UsuarioAutenticado.actual();
         return switch (u.rol()) {
@@ -31,7 +79,7 @@ public class ConvenioServicio {
     private boolean puedeVer(Convenio c, UsuarioAutenticado u) {
         return switch (u.rol()) {
             case ADMINISTRACION -> true;
-            case GESTION -> c.getUnidad().getId().equals(u.unidadId());
+            case GESTION -> u.perteneceAUnidad(c.getUnidad().getId());
             default -> c.getEstado() != EstadoConvenio.BORRADOR
                 && implicadoRepo.findByConvenioIdAndUsuarioId(c.getId(), u.id()).isPresent();
         };
@@ -39,8 +87,8 @@ public class ConvenioServicio {
 
     public boolean puedeEscribir(Convenio c) {
         UsuarioAutenticado u = UsuarioAutenticado.actual();
-        return u.rol() == Rol.ADMINISTRACION
-            || (u.rol() == Rol.GESTION && c.getUnidad().getId().equals(u.unidadId()));
+        return u.esAdministracion()
+            || (u.tieneRol(Rol.GESTION) && u.perteneceAUnidad(c.getUnidad().getId()));
     }
 
     public void exigirEscritura(Convenio c) {
@@ -84,7 +132,7 @@ public class ConvenioServicio {
         return ConvenioRespuesta.desde(c, calcularVigencia(c), implicadoRepo.findByConvenioId(c.getId()));
     }
 
-    // ================= R1: lectura =================
+    // ================= Lectura =================
 
     private List<Convenio> filtrar(String q, TipoConvenio tipo, Subtipo subtipo,
             EstadoConvenio estado, Long unidadId, Integer anioFirma, String vigencia,
@@ -96,6 +144,7 @@ public class ConvenioServicio {
             .filter(c -> tipo == null || c.getTipo() == tipo)
             .filter(c -> subtipo == null || c.getSubtipo() == subtipo)
             .filter(c -> estado == null || c.getEstado() == estado)
+            // Los archivados quedan fuera salvo que se pidan o se filtre por ese estado
             .filter(c -> incluirArchivados || estado == EstadoConvenio.ARCHIVADO
                       || c.getEstado() != EstadoConvenio.ARCHIVADO)
             .filter(c -> unidadId == null || c.getUnidad().getId().equals(unidadId))
@@ -106,6 +155,7 @@ public class ConvenioServicio {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public PagedModel<ConvenioRespuesta> listar(String q, TipoConvenio tipo, Subtipo subtipo,
             EstadoConvenio estado, Long unidadId, Integer anioFirma, String vigencia,
             boolean incluirArchivados, int pagina, int tamanio) {
@@ -120,18 +170,21 @@ public class ConvenioServicio {
         return new PagedModel<>(new PageImpl<>(contenido, pageable, lista.size()));
     }
 
+    @Transactional(readOnly = true)
     public ConvenioRespuesta obtener(Long id) {
         return aRespuesta(obtenerVisible(id));
     }
 
+    @Transactional(readOnly = true)
     public List<Historial> historial(Long id) {
         obtenerVisible(id); // valida que el usuario pueda ver el convenio
         return historialServicio.listar(id);
     }
 
-    // ================= R4: árbol =================
+    // ================= Árbol =================
 
     // Si el padre no está entre los resultados filtrados, el hijo se muestra como raíz
+    @Transactional(readOnly = true)
     public List<ArbolNodo> arbol(String q, TipoConvenio tipo, Subtipo subtipo,
             EstadoConvenio estado, Long unidadId, Integer anioFirma, String vigencia,
             boolean incluirArchivados) {
@@ -139,37 +192,43 @@ public class ConvenioServicio {
                                        vigencia, incluirArchivados);
         Set<Long> ids = lista.stream().map(Convenio::getId).collect(Collectors.toSet());
         Map<Long, List<Convenio>> hijosPorPadre = lista.stream()
-            .filter(c -> c.getPadre() != null && ids.contains(c.getPadre().getId()))
-            .collect(Collectors.groupingBy(c -> c.getPadre().getId()));
+            .filter(c -> c.getConvenioPadre() != null && ids.contains(c.getConvenioPadre().getId()))
+            .collect(Collectors.groupingBy(c -> c.getConvenioPadre().getId()));
         return lista.stream()
-            .filter(c -> c.getPadre() == null || !ids.contains(c.getPadre().getId()))
+            .filter(c -> c.getConvenioPadre() == null || !ids.contains(c.getConvenioPadre().getId()))
             .map(c -> construirNodo(c, hijosPorPadre))
             .toList();
     }
 
-    // Recursivo: hijos convenio + documentos del convenio como hojas
+    // Recursivo: cada nodo es un convenio y sus hijos son los convenios que cuelgan de él
     private ArbolNodo construirNodo(Convenio c, Map<Long, List<Convenio>> hijosPorPadre) {
-        List<ArbolNodo> hijos = new ArrayList<>();
+        ArbolNodo nodo = new ArbolNodo();
+        nodo.setId(c.getId());
+        nodo.setCodigo(c.getCodigo());
+        nodo.setTitulo(c.getTitulo());
+        nodo.setTipo(c.getTipo());
+        nodo.setSubtipo(c.getSubtipo());
+        nodo.setEstado(c.getEstado());
+        nodo.setUnidadNombre(c.getUnidad().getNombre());
+        nodo.setFechaVencimiento(c.getFechaVencimiento());
         for (Convenio h : hijosPorPadre.getOrDefault(c.getId(), List.of()))
-            hijos.add(construirNodo(h, hijosPorPadre));
-        for (Documento d : documentoRepo.findByConvenioId(c.getId()))
-            hijos.add(new ArbolNodo(d.getId(), "DOCUMENTO", null, d.getNombre(), null, List.of()));
-        return new ArbolNodo(c.getId(), "CONVENIO", c.getCodigo(), c.getTitulo(), c.getEstado(), hijos);
+            nodo.getHijos().add(construirNodo(h, hijosPorPadre));
+        return nodo;
     }
 
-    // ================= R2: crear, editar, eliminar =================
+    // ================= Crear, editar, eliminar =================
 
     public ConvenioRespuesta crear(ConvenioSolicitud s) {
         UsuarioAutenticado u = UsuarioAutenticado.actual();
-        if (u.rol() != Rol.ADMINISTRACION && u.rol() != Rol.GESTION)
+        if (!u.esAdministracion() && !u.tieneRol(Rol.GESTION))
             throw new SinPermisoException("No tiene permisos para crear convenios");
         Convenio c = new Convenio();
         c.setEstado(EstadoConvenio.BORRADOR);
         c.setCreadoPor(usuarioRepo.getReferenceById(u.id()));
         aplicar(c, s, u);
-        c.setCodigo(generarCodigo(s.tipo(), s.subtipo()));
+        c.setCodigo(generarCodigo(s.getTipo(), s.getSubtipo()));
         Convenio guardado = convenioRepo.saveAndFlush(c);
-        reemplazarImplicados(guardado, s.implicadosIds());
+        crearImplicados(guardado, s.getImplicadosIds());
         historialServicio.registrar(guardado, "CREAR", null, EstadoConvenio.BORRADOR, null);
         return aRespuesta(guardado);
     }
@@ -181,19 +240,33 @@ public class ConvenioServicio {
         if (c.getEstado() != EstadoConvenio.BORRADOR && c.getEstado() != EstadoConvenio.ACEPTADO)
             throw new ConflictoException("TRANSICION_INVALIDA",
                 "Solo se puede editar un convenio en Borrador o Aceptado");
-        if (s.revision() == null || !s.revision().equals(c.getRevision()))
+        if (s.getRevision() == null || !s.getRevision().equals(c.getRevision()))
             throw new ConflictoException("VERSION_DESACTUALIZADA",
                 "El convenio fue modificado por otra persona. Recargue para ver los cambios");
+        // El código se genera con el tipo y el subtipo: si cambiaran, quedaría desfasado
+        if (s.getTipo() != c.getTipo() || s.getSubtipo() != c.getSubtipo())
+            throw new SolicitudInvalidaException("No se puede cambiar el tipo ni el subtipo de un convenio");
         boolean eraAceptado = c.getEstado() == EstadoConvenio.ACEPTADO;
-        if (eraAceptado && (s.motivo() == null || s.motivo().isBlank()))
+        if (eraAceptado && (s.getMotivo() == null || s.getMotivo().isBlank()))
             throw new SolicitudInvalidaException("Debe indicar el motivo de la modificación");
 
         aplicar(c, s, u);
-        // La lista de implicados se reemplaza siempre: en un Aceptado esto anula las firmas
-        reemplazarImplicados(c, s.implicadosIds());
-        Convenio guardado = convenioRepo.saveAndFlush(c); // @Version incrementa 'revision'
+        if (s.getImplicadosIds() != null) {
+            // Lista nueva: las filas se recrean sin firmar (en un Aceptado esto anula las firmas)
+            reemplazarImplicados(c, s.getImplicadosIds());
+        } else if (eraAceptado) {
+            // No vino la lista: se conservan los firmantes, pero se anulan sus firmas
+            anularFirmas(c);
+        }
+        // Un Aceptado editado debe seguir cumpliendo todo lo que se pidió para aceptarlo
+        if (eraAceptado) validarParaAceptar(c);
+
+        // Fuerza el UPDATE aunque solo hayan cambiado los implicados:
+        // así se incrementa 'revision' y se actualiza la fecha
+        c.setFechaActualizacion(LocalDateTime.now());
+        Convenio guardado = convenioRepo.saveAndFlush(c);
         historialServicio.registrar(guardado, eraAceptado ? "MODIFICAR" : "EDITAR",
-            guardado.getEstado(), guardado.getEstado(), s.motivo());
+            guardado.getEstado(), guardado.getEstado(), s.getMotivo());
         return aRespuesta(guardado);
     }
 
@@ -202,13 +275,32 @@ public class ConvenioServicio {
         exigirEscritura(c);
         if (c.getEstado() != EstadoConvenio.BORRADOR)
             throw new ConflictoException("TRANSICION_INVALIDA", "Solo se pueden eliminar borradores");
-        if (convenioRepo.existsByPadreId(id))
+        if (convenioRepo.existsByConvenioPadreId(id))
             throw new ConflictoException("TIENE_DEPENDIENTES", "El convenio tiene convenios dependientes");
-        documentoRepo.findByConvenioId(id).forEach(d -> almacenamiento.borrar(d.getRutaArchivo()));
+        List<String> rutas = documentoRepo.findByConvenioId(id).stream()
+            .map(Documento::getRutaArchivo).toList();
         convenioRepo.delete(c); // las filas hijas se borran por ON DELETE CASCADE
+        convenioRepo.flush();
+        borrarArchivosDespuesDelCommit(rutas);
     }
 
-    // ================= R2: transiciones de estado =================
+    // Los PDFs se borran del disco solo si la transacción terminó bien
+    private void borrarArchivosDespuesDelCommit(List<String> rutas) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (String ruta : rutas) {
+                    try {
+                        almacenamiento.borrar(ruta);
+                    } catch (RuntimeException e) {
+                        // El registro ya se borró: un archivo huérfano no debe devolver error
+                    }
+                }
+            }
+        });
+    }
+
+    // ================= Transiciones de estado =================
 
     public ConvenioRespuesta aceptar(Long id) {
         return transicionar(id, Set.of(EstadoConvenio.BORRADOR), EstadoConvenio.ACEPTADO,
@@ -216,10 +308,13 @@ public class ConvenioServicio {
     }
 
     public ConvenioRespuesta rescindir(Long id, String motivo) {
+        if (motivo == null || motivo.isBlank())
+            throw new SolicitudInvalidaException("Debe indicar el fundamento de la rescisión");
         return transicionar(id, Set.of(EstadoConvenio.FIRMADO), EstadoConvenio.RESCINDIDO,
             "RESCINDIR", motivo, null);
     }
 
+    // El motivo es opcional: archivar es un cierre administrativo
     public ConvenioRespuesta archivar(Long id, String motivo) {
         return transicionar(id, Set.of(EstadoConvenio.FIRMADO, EstadoConvenio.RESCINDIDO),
             EstadoConvenio.ARCHIVADO, "ARCHIVAR", motivo, null);
@@ -241,53 +336,56 @@ public class ConvenioServicio {
         return aRespuesta(guardado);
     }
 
+    // Se necesitan al menos dos partes: la organización (externa) y un firmante con usuario
     private void validarParaAceptar(Convenio c) {
         if (c.getOrganizacion() == null || c.getOrganizacion().isBlank() || c.getFechaInicio() == null)
             throw new SolicitudInvalidaException("Faltan datos obligatorios: organización y fecha de inicio");
-        if (c.getTipo() != TipoConvenio.MARCO && c.getPadre() == null)
+        if (c.getTipo() != TipoConvenio.MARCO && c.getConvenioPadre() == null)
             throw new SolicitudInvalidaException("Un específico o una adenda necesita un convenio padre");
         if (!documentoRepo.existsByConvenioId(c.getId()))
             throw new SolicitudInvalidaException("Debe adjuntar el PDF del convenio");
         if (implicadoRepo.findByConvenioId(c.getId()).isEmpty())
-            throw new SolicitudInvalidaException("Debe indicar al menos un firmante");
+            throw new SolicitudInvalidaException(
+                "Debe indicar al menos un firmante, además de la organización");
     }
 
     // ================= Auxiliares =================
 
     // Copia los datos de la solicitud a la entidad (la usan crear y editar)
     private void aplicar(Convenio c, ConvenioSolicitud s, UsuarioAutenticado u) {
-        if (s.fechaInicio() != null && s.fechaVencimiento() != null
-                && s.fechaVencimiento().isBefore(s.fechaInicio()))
+        if (s.getFechaInicio() != null && s.getFechaVencimiento() != null
+                && s.getFechaVencimiento().isBefore(s.getFechaInicio()))
             throw new SolicitudInvalidaException("El vencimiento no puede ser anterior al inicio");
         // Gestión siempre trabaja en su unidad; Administración debe indicarla
-        Long unidadId = u.rol() == Rol.GESTION ? u.unidadId() : s.unidadId();
+        Long unidadId = u.tieneRol(Rol.GESTION) ? u.unidadId() : s.getUnidadId();
         if (unidadId == null)
             throw new SolicitudInvalidaException("Debe indicar la unidad responsable");
         c.setUnidad(unidadRepo.findById(unidadId)
             .orElseThrow(() -> new SolicitudInvalidaException("La unidad no existe")));
-        c.setTitulo(s.titulo().trim());
-        c.setTipo(s.tipo());
-        c.setSubtipo(s.subtipo());
-        c.setOrganizacion(s.organizacion());
-        c.setObjeto(s.objeto());
-        c.setResolucion(s.resolucion());
-        c.setExpediente(s.expediente());
-        c.setFechaInicio(s.fechaInicio());
-        c.setFechaVencimiento(s.fechaVencimiento());
-        c.setPadre(resolverPadre(c, s));
+        c.setTitulo(s.getTitulo().trim());
+        c.setTipo(s.getTipo());
+        c.setSubtipo(s.getSubtipo());
+        c.setOrganizacion(s.getOrganizacion());
+        c.setObjeto(s.getObjeto());
+        c.setResolucion(s.getResolucion());
+        c.setExpediente(s.getExpediente());
+        c.setFechaInicio(s.getFechaInicio());
+        c.setFechaVencimiento(s.getFechaVencimiento());
+        c.setConvenioPadre(resolverPadre(c, s));
     }
 
     private Convenio resolverPadre(Convenio c, ConvenioSolicitud s) {
-        if (s.padreId() == null) return null;
-        if (s.tipo() == TipoConvenio.MARCO)
+        if (s.getConvenioPadreId() == null) return null;
+        if (s.getTipo() == TipoConvenio.MARCO)
             throw new SolicitudInvalidaException("Un marco no puede tener convenio padre");
-        Convenio padre = obtenerVisible(s.padreId());
-        if (s.tipo() == TipoConvenio.ESPECIFICO
-                && (padre.getTipo() != TipoConvenio.MARCO || padre.getSubtipo() != s.subtipo()))
+        // Usa obtenerVisible: Gestión solo puede elegir padres de su propia unidad
+        Convenio padre = obtenerVisible(s.getConvenioPadreId());
+        if (s.getTipo() == TipoConvenio.ESPECIFICO
+                && (padre.getTipo() != TipoConvenio.MARCO || padre.getSubtipo() != s.getSubtipo()))
             throw new SolicitudInvalidaException(
                 "El padre de un específico debe ser un marco del mismo subtipo");
         // Recorre los ancestros para evitar ciclos (el árbol recursivo nunca terminaría)
-        for (Convenio a = padre; a != null; a = a.getPadre())
+        for (Convenio a = padre; a != null; a = a.getConvenioPadre())
             if (a.getId().equals(c.getId()))
                 throw new SolicitudInvalidaException("El convenio padre genera un ciclo");
         return padre;
@@ -298,17 +396,31 @@ public class ConvenioServicio {
         // Hibernate ejecuta los INSERT antes que los DELETE: sin este flush, volver a insertar
         // el mismo (convenio, usuario) violaría la restricción UNIQUE uq_implicado
         implicadoRepo.flush();
+        crearImplicados(c, ids);
+    }
+
+    private void crearImplicados(Convenio c, List<Long> ids) {
         if (ids == null) return;
         for (Long idUsuario : new LinkedHashSet<>(ids)) { // el Set descarta repetidos
             Usuario usuario = usuarioRepo.findById(idUsuario).orElseThrow(
                 () -> new SolicitudInvalidaException("Usuario inexistente: " + idUsuario));
-            if (!usuario.isActivo() || !UsuarioServicio.esDeConsulta(usuario.getRol()))
+            if (!Boolean.TRUE.equals(usuario.getActivo()) || !UsuarioServicio.esDeConsulta(usuario.getRol()))
                 throw new SolicitudInvalidaException(
                     "Solo pueden firmar usuarios activos de consulta: " + usuario.getMail());
             ConvenioImplicado implicado = new ConvenioImplicado();
             implicado.setConvenio(c);
             implicado.setUsuario(usuario);
             implicadoRepo.save(implicado);
+        }
+    }
+
+    private void anularFirmas(Convenio c) {
+        for (ConvenioImplicado i : implicadoRepo.findByConvenioId(c.getId())) {
+            i.setFirmado(false);
+            i.setFechaFirma(null);
+            i.setLatitud(null);
+            i.setLongitud(null);
+            i.setFirmaRuta(null);
         }
     }
 
@@ -326,9 +438,13 @@ public class ConvenioServicio {
             case ADENDA -> "ADE";
         };
         String inicio = prefijo + "-" + LocalDate.now().getYear() + "-";
-        long n = convenioRepo.countByCodigoStartingWith(inicio) + 1;
+        long n = countConPrefijo(inicio) + 1;
         // Si se borró un borrador, el conteo puede repetir un código existente
         while (convenioRepo.existsByCodigo(inicio + String.format("%03d", n))) n++;
         return inicio + String.format("%03d", n);
+    }
+
+    private long countConPrefijo(String inicio) {
+        return convenioRepo.countByCodigoStartingWith(inicio);
     }
 }

@@ -1,8 +1,29 @@
+package ar.edu.unlpam.convenios.servicio;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import ar.edu.unlpam.convenios.dto.ConvenioRespuesta;
+import ar.edu.unlpam.convenios.dto.ResumenDashboard;
+import ar.edu.unlpam.convenios.entidad.Convenio;
+import ar.edu.unlpam.convenios.entidad.Historial;
+import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
+import ar.edu.unlpam.convenios.repositorio.HistorialRepositorio;
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor 
 public class DashboardServicio {
 
-    @Autowired private ConvenioServicio convenioServicio;
-    @Autowired private HistorialRepositorio historialRepo;
+    private ConvenioServicio convenioServicio;
+    private HistorialRepositorio historialRepo;
 
     public ResumenDashboard resumen() {
         List<Convenio> lista = convenioServicio.visibles();

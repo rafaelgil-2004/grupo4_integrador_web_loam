@@ -39,7 +39,7 @@ public class ConfiguracionSeguridad {
 
     /** Rutas que no necesitan token. */
     private static final String[] RUTAS_PUBLICAS = {
-            "/api/auth/**",
+            "/api/auth/login",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

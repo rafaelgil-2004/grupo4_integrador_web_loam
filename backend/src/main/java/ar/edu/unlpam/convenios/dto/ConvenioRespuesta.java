@@ -1,5 +1,8 @@
 package ar.edu.unlpam.convenios.dto;
 
+import ar.edu.unlpam.convenios.entidad.Convenio;
+import ar.edu.unlpam.convenios.entidad.ConvenioImplicado;
+import ar.edu.unlpam.convenios.entidad.Unidad;
 import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
 import ar.edu.unlpam.convenios.entidad.enums.Subtipo;
 import ar.edu.unlpam.convenios.entidad.enums.TipoConvenio;
@@ -10,6 +13,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,8 +27,7 @@ public class ConvenioRespuesta{
     private TipoConvenio tipo;
     private Subtipo subtipo;
     private EstadoConvenio estado;
-    private Long unidadId;
-    private String unidadNombre;
+    private Unidad unidad;
     private String organizacion;
     private String objeto;
     private String resolucion;
@@ -33,9 +36,23 @@ public class ConvenioRespuesta{
     private LocalDate fechaVencimiento;
     private LocalDateTime fechaFirma;
     private Long convenioPadreId;
+    private String vigencia;
     private Integer revision;
     private Long creadoPorId;
     private String creadoPorNombre;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
+    private List<ConvenioImplicado> listaImplicados;
+
+    // Hace de "mapeador": arma la respuesta a partir de la entidad
+    public static ConvenioRespuesta desde(Convenio c, String vigencia, List<ConvenioImplicado> implicados) {
+        Convenio padre = c.getConvenioPadre();
+        return new ConvenioRespuesta(c.getId(),c.getCodigo(),c.getTitulo(),c.getTipo(),c.getSubtipo(),c.getEstado(),c.getUnidad(),
+                    c.getOrganizacion(),c.getObjeto(),c.getResolucion(),c.getExpediente(),c.getFechaInicio(),c.getFechaVencimiento(),
+                    c.getFechaFirma(),
+                    padre != null ? padre.getId() : null,vigencia,
+                    c.getRevision(),c.getCreadoPor().getId(),c.getCreadoPor().getNombre(),
+                    c.getFechaCreacion(),c.getFechaActualizacion(), implicados
+                );
+    }
 }
