@@ -1,0 +1,30 @@
+# ============================================================
+#  PLANTILLA de configuración.
+#  Copiar este archivo como "application.properties" (en esta misma carpeta)
+#  y completar los valores. application.properties está en .gitignore,
+#  así cada uno usa su propia contraseña de MySQL y su propio secreto JWT.
+# ============================================================
+
+spring.application.name=convenios
+
+# ---------- Base de datos (MySQL) ----------
+# Crear antes la base con el script SQL del esquema (convenios_unlpam).
+spring.datasource.url=jdbc:mysql://localhost:3306/convenios_unlpam?serverTimezone=America/Argentina/Buenos_Aires&allowPublicKeyRetrieval=true&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=TU_PASSWORD_DE_MYSQL
+
+# ---------- JPA / Hibernate ----------
+# none: Hibernate no toca las tablas; el esquema lo define el script SQL.
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.open-in-view=false
+spring.jpa.show-sql=false
+
+# ---------- Subida de archivos (PDF) ----------
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# ---------- JWT ----------
+# Cadena aleatoria de al menos 32 caracteres. Para generar una en PowerShell:
+#   $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+jwt.secreto=PONER_UNA_CADENA_ALEATORIA_DE_AL_MENOS_32_CARACTERES
+jwt.expiracion-minutos=480
