@@ -9,11 +9,10 @@ import ar.edu.unlpam.convenios.entidad.Convenio;
 public interface ConvenioRepositorio extends JpaRepository<Convenio, Long> {
 
     // Convenios visibles para un usuario de Gestión
-    List<Convenio> findByUnidadId(Long unidadId);
-
+    List<Convenio> findByConvenioPadreId(Long padreId);
     // Generar el código: cuántos hay con prefijo "MCO-2026-" para sacar el número siguiente
     long countByCodigoStartingWith(String prefijo);
 
     // Impedir eliminar o archivar un convenio que tiene hijos
-    boolean existsByPadreId(Long padreId);
+    boolean existsByConvenioPadreId(Long padreId);
 }
