@@ -23,9 +23,9 @@ public class ObservacionServicio {
     private static final Pattern OFENSIVAS = Pattern.compile(
         "\\b(idiota|estupido|imbecil|inutil|basura|mierda|pelotudo|tarado|maldito)\\b");
 
-    private ObservacionRepositorio observacionRepo;
-    private ConvenioServicio convenioServicio;
-    private UsuarioServicio usuarioServicio;
+    private final ObservacionRepositorio observacionRepo;
+    private final ConvenioServicio convenioServicio;
+    private final UsuarioServicio usuarioServicio;
 
     public List<Observacion> listar(Long convenioId) {
         convenioServicio.obtenerVisible(convenioId);

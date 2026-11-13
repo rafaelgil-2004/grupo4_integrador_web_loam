@@ -22,8 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class DashboardServicio {
 
-    private ConvenioServicio convenioServicio;
-    private HistorialRepositorio historialRepo;
+    private final ConvenioServicio convenioServicio;
+    private final HistorialRepositorio historialRepo;
 
     public ResumenDashboard resumen() {
         List<Convenio> lista = convenioServicio.visibles();

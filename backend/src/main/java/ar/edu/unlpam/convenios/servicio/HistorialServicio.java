@@ -17,8 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class HistorialServicio {
 
-    private HistorialRepositorio historialRepo;
-    private UsuarioRepositorio usuarioRepo;
+    private final HistorialRepositorio historialRepo;
+    private final UsuarioRepositorio usuarioRepo;
 
     // El usuario se toma del token: los demás servicios no tienen que pasarlo
     public void registrar(Convenio convenio, String accion, EstadoConvenio anterior,

@@ -33,11 +33,11 @@ public class DocumentoServicio {
 
     private static final int LIMITE_BYTES = 20 * 1024 * 1024;
 
-    private DocumentoRepositorio documentoRepo;
-    private ConvenioServicio convenioServicio;
-    private UsuarioServicio usuarioServicio;
-    private AlmacenamientoServicio almacenamiento;
-    private HistorialServicio historialServicio;
+    private final DocumentoRepositorio documentoRepo;
+    private final ConvenioServicio convenioServicio;
+    private final UsuarioServicio usuarioServicio;
+    private final AlmacenamientoServicio almacenamiento;
+    private final HistorialServicio historialServicio;
 
     public Documento subir(Long convenioId, MultipartFile archivo) {
         Convenio c = convenioServicio.obtenerVisible(convenioId);
