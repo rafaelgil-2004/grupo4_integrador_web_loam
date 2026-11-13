@@ -15,5 +15,7 @@ public interface ConvenioRepositorio extends JpaRepository<Convenio, Long> {
     long countByCodigoStartingWith(String prefijo);
 
     // Impedir eliminar o archivar un convenio que tiene hijos
-    boolean existsByPadreId(Long padreId);
+    boolean existsByConvenioPadreId(Long convenioPadreId);
+
+    boolean existsByCodigo(String codigo);
 }
