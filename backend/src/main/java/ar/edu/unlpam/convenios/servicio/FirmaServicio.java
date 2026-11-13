@@ -24,11 +24,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class FirmaServicio {
 
-    private ConvenioImplicadoRepositorio implicadoRepo;
-    private ConvenioRepositorio convenioRepo;
-    private ConvenioServicio convenioServicio;
-    private AlmacenamientoServicio almacenamiento;
-    private HistorialServicio historialServicio;
+    private final ConvenioImplicadoRepositorio implicadoRepo;
+    private final ConvenioRepositorio convenioRepo;
+    private final ConvenioServicio convenioServicio;
+    private final AlmacenamientoServicio almacenamiento;
+    private final HistorialServicio historialServicio;
 
     public ConvenioImplicado firmar(Long convenioId, Double latitud, Double longitud,
                                     MultipartFile imagenFirma) {

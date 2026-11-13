@@ -23,9 +23,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class UsuarioServicio {
 
-    private UsuarioRepositorio usuarioRepo;
-    private UnidadRepositorio unidadRepo;
-    private PasswordEncoder codificador;
+    private final UsuarioRepositorio usuarioRepo;
+    private final UnidadRepositorio unidadRepo;
+    private final PasswordEncoder codificador;
 
     public static boolean esDeConsulta(Rol rol) {
         return rol != Rol.ADMINISTRACION && rol != Rol.GESTION;

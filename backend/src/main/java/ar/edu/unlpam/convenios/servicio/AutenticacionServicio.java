@@ -16,9 +16,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class AutenticacionServicio {
 
-    private UsuarioRepositorio usuarioRepo;
-    private PasswordEncoder codificador;
-    private JwtServicio jwtServicio;
+    private final UsuarioRepositorio usuarioRepo;
+    private final  PasswordEncoder codificador;
+    private final JwtServicio jwtServicio;
 
     public LoginRespuesta login(LoginSolicitud s) {
         // Mismo mensaje para mail inexistente, clave mala o usuario inactivo
