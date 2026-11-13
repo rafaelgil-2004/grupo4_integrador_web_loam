@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -48,6 +49,12 @@ public class ConvenioSolicitud{
 
     /** Marco (o convenio que se modifica). Null si el convenio es un marco. */
     private Long convenioPadreId;
+
+    List<Long> implicadosIds;
+    
+    Integer revision;
+
+    String motivo;
 
     @AssertTrue(message = "La fecha de vencimiento no puede ser anterior a la de inicio")
     private boolean isFechasValidas() {

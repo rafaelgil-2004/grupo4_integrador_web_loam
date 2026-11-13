@@ -1,118 +1,96 @@
 package ar.edu.unlpam.convenios.servicio;
 
-import ar.edu.unlpam.convenios.dto.UsuarioRespuesta;
+import java.util.List;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import ar.edu.unlpam.convenios.dto.UsuarioSolicitud;
-import ar.edu.unlpam.convenios.entidad.Unidad;
 import ar.edu.unlpam.convenios.entidad.Usuario;
 import ar.edu.unlpam.convenios.entidad.enums.Rol;
 import ar.edu.unlpam.convenios.excepcion.ConflictoException;
+import ar.edu.unlpam.convenios.excepcion.NoAutenticadoException;
 import ar.edu.unlpam.convenios.excepcion.NoEncontradoException;
 import ar.edu.unlpam.convenios.excepcion.SolicitudInvalidaException;
 import ar.edu.unlpam.convenios.repositorio.UnidadRepositorio;
 import ar.edu.unlpam.convenios.repositorio.UsuarioRepositorio;
 import ar.edu.unlpam.convenios.seguridad.UsuarioAutenticado;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@Transactional
+@RequiredArgsConstructor 
 public class UsuarioServicio {
 
-    private static final int MIN_PASSWORD = 8;
+    private UsuarioRepositorio usuarioRepo;
+    private UnidadRepositorio unidadRepo;
+    private PasswordEncoder codificador;
 
-    private final UsuarioRepositorio usuarioRepo;
-    private final UnidadRepositorio unidadRepo;
-    private final PasswordEncoder passwordEncoder;
-
-    @Transactional(readOnly = true)
-    public List<UsuarioRespuesta> listar(String q, Rol rol) {
-        String texto = q == null ? "" : q.trim();
-        return usuarioRepo.buscarPorTexto(texto).stream()
-                .filter(u -> rol == null || u.getRol() == rol)
-                .map(UsuarioRespuesta::desde)
-                .toList();
+    public static boolean esDeConsulta(Rol rol) {
+        return rol != Rol.ADMINISTRACION && rol != Rol.GESTION;
     }
 
-    @Transactional
-    public UsuarioRespuesta crear(UsuarioSolicitud s) {
-        String mail = s.mail().trim().toLowerCase();
-        if (usuarioRepo.existsByMail(mail)) {
-            throw new ConflictoException("Ya existe un usuario con el mail " + mail);
-        }
-        if (s.password() == null || s.password().isBlank()) {
-            throw new SolicitudInvalidaException("La contraseña es obligatoria al crear un usuario");
-        }
-        validarPassword(s.password());
+    // Usuario completo (entidad) del token. Lo usan Documento y Observación
+    public Usuario actual() {
+        return usuarioRepo.findById(UsuarioAutenticado.actual().id())
+            .orElseThrow(() -> new NoAutenticadoException("Usuario inexistente"));
+    }
 
+    public List<Usuario> listar(String q, Rol rol) {
+        List<Usuario> lista = (q == null || q.isBlank())
+            ? usuarioRepo.findAll() : usuarioRepo.buscarPorTexto(q.trim());
+        // Gestión solo necesita elegir firmantes: usuarios activos de consulta
+        if (UsuarioAutenticado.actual().rol() == Rol.GESTION) {
+            lista = lista.stream().filter(u -> u.getActivo() && esDeConsulta(u.getRol())).toList();
+        }
+        return lista.stream().filter(u -> rol == null || u.getRol() == rol).toList();
+    }
+
+    public Usuario crear(UsuarioSolicitud s) {
+        String mail = s.mail().trim().toLowerCase();
+        if (usuarioRepo.existsByMail(mail))
+            throw new ConflictoException("MAIL_DUPLICADO", "Ya existe un usuario con ese mail");
+        if (s.password() == null || s.password().isBlank())
+            throw new SolicitudInvalidaException("La contraseña es obligatoria");
         Usuario u = new Usuario();
-        aplicar(u, s, mail);
-        u.setPasswordHash(passwordEncoder.encode(s.password()));
-        return UsuarioRespuesta.desde(usuarioRepo.save(u));
+        aplicar(u, s);
+        u.setMail(mail);
+        u.setPasswordHash(codificador.encode(s.password()));
+        u.setActivo(true);
+        return usuarioRepo.save(u);
     }
 
-    @Transactional
-    public UsuarioRespuesta editar(Long id, UsuarioSolicitud s) {
-        Usuario u = buscar(id);
+    public Usuario editar(Long id, UsuarioSolicitud s) {
+        Usuario u = usuarioRepo.findById(id)
+            .orElseThrow(() -> new NoEncontradoException("Usuario no encontrado"));
         String mail = s.mail().trim().toLowerCase();
-        usuarioRepo.findByMail(mail)
-                .filter(otro -> !otro.getId().equals(id))
-                .ifPresent(otro -> {
-                    throw new ConflictoException("Ya existe un usuario con el mail " + mail);
-                });
-
-        aplicar(u, s, mail);
-        if (s.password() != null && !s.password().isBlank()) {
-            validarPassword(s.password());
-            u.setPasswordHash(passwordEncoder.encode(s.password()));
-        }
-        return UsuarioRespuesta.desde(usuarioRepo.save(u));
+        if (!mail.equals(u.getMail()) && usuarioRepo.existsByMail(mail))
+            throw new ConflictoException("MAIL_DUPLICADO", "Ya existe un usuario con ese mail");
+        aplicar(u, s);
+        u.setMail(mail);
+        // Contraseña vacía al editar = no cambiarla
+        if (s.password() != null && !s.password().isBlank())
+            u.setPasswordHash(codificador.encode(s.password()));
+        return usuarioRepo.save(u);
     }
 
-       /** Invierte el estado activo/inactivo. Nadie puede desactivarse a sí mismo. */
-    @Transactional
-    public UsuarioRespuesta cambiarActivo(Long id) {
-        Usuario u = buscar(id);
-        if (u.getActivo() && UsuarioAutenticado.actual().id().equals(id)) {
-            throw new SolicitudInvalidaException("No puede desactivar su propio usuario");
-        }
-        u.setActivo(!u.getActivo());
-        return UsuarioRespuesta.desde(usuarioRepo.save(u));
+    public Usuario cambiarActivo(Long id, boolean activo) {
+        if (!activo && id.equals(UsuarioAutenticado.actual().id()))
+            throw new SolicitudInvalidaException("No puede desactivarse a sí mismo");
+        Usuario u = usuarioRepo.findById(id)
+            .orElseThrow(() -> new NoEncontradoException("Usuario no encontrado"));
+        u.setActivo(activo);
+        return usuarioRepo.save(u);
     }
 
-    private Usuario buscar(Long id) {
-        return usuarioRepo.findById(id).orElseThrow(() -> new NoEncontradoException("Usuario", id));
-    }
-
-    private void aplicar(Usuario u, UsuarioSolicitud s, String mail) {
+    private void aplicar(Usuario u, UsuarioSolicitud s) {
+        if (s.rol() == Rol.GESTION && s.unidadId() == null)
+            throw new SolicitudInvalidaException("Un usuario de Gestión necesita unidad");
         u.setNombre(s.nombre().trim());
         u.setApellido(s.apellido().trim());
-        u.setMail(mail);
         u.setRol(s.rol());
-        u.setUnidad(resolverUnidad(s.rol(), s.unidadId()));
-    }
-
-    private Unidad resolverUnidad(Rol rol, Long unidadId) {
-        if (rol == Rol.ADMINISTRACION) {
-            return null;
-        }
-        if (unidadId == null) {
-            if (rol == Rol.GESTION) {
-                throw new SolicitudInvalidaException("El rol GESTION exige una unidad");
-            }
-            return null;
-        }
-        return unidadRepo.findById(unidadId)
-                .orElseThrow(() -> new NoEncontradoException("Unidad", unidadId));
-    }
-
-    private void validarPassword(String password) {
-        if (password.length() < MIN_PASSWORD) {
-            throw new SolicitudInvalidaException(
-                    "La contraseña debe tener al menos " + MIN_PASSWORD + " caracteres");
-        }
+        u.setUnidad(s.unidadId() == null ? null : unidadRepo.findById(s.unidadId())
+            .orElseThrow(() -> new SolicitudInvalidaException("La unidad no existe")));
     }
 }
