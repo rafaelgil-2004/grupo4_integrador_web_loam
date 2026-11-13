@@ -49,13 +49,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class ConvenioServicio {
 
-    private ConvenioRepositorio convenioRepo;
-    private ConvenioImplicadoRepositorio implicadoRepo;
-    private DocumentoRepositorio documentoRepo;
-    private UsuarioRepositorio usuarioRepo;
-    private UnidadRepositorio unidadRepo;
-    private HistorialServicio historialServicio;
-    private AlmacenamientoServicio almacenamiento;
+    private final ConvenioRepositorio convenioRepo;
+    private final ConvenioImplicadoRepositorio implicadoRepo;
+    private final DocumentoRepositorio documentoRepo;
+    private final UsuarioRepositorio usuarioRepo;
+    private final UnidadRepositorio unidadRepo;
+    private final HistorialServicio historialServicio;
+    private final AlmacenamientoServicio almacenamiento;
 
     @Value("${convenios.dias-por-vencer:30}")
     private int diasPorVencer;

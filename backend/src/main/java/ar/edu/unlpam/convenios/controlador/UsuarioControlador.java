@@ -42,7 +42,8 @@ public class UsuarioControlador {
 
     @PatchMapping("/{id}/activo")
     @PreAuthorize("hasRole('ADMINISTRACION')")
-    public UsuarioRespuesta cambiarActivo(@PathVariable Long id) {
-        return servicio.cambiarActivo(id);
+    public UsuarioRespuesta cambiarActivo(@PathVariable Long id,
+                                          @RequestParam(required = false) Boolean activo) {
+        return servicio.cambiarActivo(id, activo);
     }
 }
