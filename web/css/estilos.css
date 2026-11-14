@@ -4,7 +4,7 @@
     --bordo: #8C0000;
     --amarillo: #FFF100;
     --gris-footer: #333333;
-    --gris-navbar: #848484;
+    --gris-navbar: #6B6B6B;
     --gris-texto: #626262;
     --gris-titulo: #404040;
 }
@@ -37,3 +37,29 @@ a { color: var(--bordo); }
 }
 .contenedor-login { margin: auto; width: 100%; max-width: 420px; padding: 1rem; }
 .tarjeta-login { border: 0; border-radius: .75rem; }
+
+/* Navbar: el enlace activo se marca con una barra amarilla (no depende solo del color del texto) */
+.barra-principal { background-color: var(--gris-navbar); }
+.barra-principal .nav-link {
+    color: #fff;
+    border-bottom: 3px solid transparent;
+}
+.barra-principal .nav-link:hover,
+.barra-principal .nav-link:focus-visible { color: #fff; background-color: rgba(255, 255, 255, .15); }
+.barra-principal .nav-link.active { font-weight: 700; border-bottom-color: var(--amarillo); }
+.btn-usuario { color: #fff; border-color: rgba(255, 255, 255, .6); }
+.btn-usuario:hover, .btn-usuario:focus-visible { color: #fff; background-color: rgba(255, 255, 255, .15); }
+
+.pie { background-color: var(--gris-footer); color: #fff; padding: 1rem 0; margin-top: 3rem; }
+
+/* Tarjetas del resumen */
+.tarjeta-resumen {
+    display: block;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+    border-left: 4px solid var(--naranja);
+}
+a.tarjeta-resumen:hover,
+a.tarjeta-resumen:focus-visible { border-left-color: var(--naranja-hover); box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15); }
+.tarjeta-numero { font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--gris-titulo); }

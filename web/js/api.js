@@ -50,3 +50,16 @@ export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false } = 
 
 export const login = (mail, password) =>
     pedir("/auth/login", { metodo: "POST", cuerpo: { mail, password }, publica: true });
+
+export const obtenerResumen = () => pedir("/dashboard/resumen");
+
+export const obtenerMovimientos = (limite = 10) => pedir(`/dashboard/movimientos?limite=${limite}`);
+
+// Sirve también para el listado: ignora los filtros vacíos
+export function listarConvenios(filtros = {}) {
+    const parametros = new URLSearchParams();
+    for (const [clave, valor] of Object.entries(filtros)) {
+        if (valor !== undefined && valor !== null && valor !== "") parametros.set(clave, valor);
+    }
+    return pedir(`/convenios?${parametros}`);
+}

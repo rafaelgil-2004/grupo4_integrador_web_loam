@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.unlpam.convenios.dto.ConvenioRespuesta;
 import ar.edu.unlpam.convenios.dto.ResumenDashboard;
@@ -16,9 +17,11 @@ import ar.edu.unlpam.convenios.entidad.Convenio;
 import ar.edu.unlpam.convenios.entidad.Historial;
 import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
 import ar.edu.unlpam.convenios.repositorio.HistorialRepositorio;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor 
 public class DashboardServicio {
 

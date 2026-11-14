@@ -28,7 +28,8 @@ export function cerrarSesion() {
     location.href = "login.html";
 }
 
-// Primera línea de cada página protegida
 export function exigirSesion() {
-    if (!haySesion()) location.replace("login.html");
+    if (haySesion()) return true;
+    location.replace("login.html");
+    return false;
 }
