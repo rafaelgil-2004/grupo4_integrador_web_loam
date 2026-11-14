@@ -11,8 +11,6 @@ import ar.edu.unlpam.convenios.dto.LoginSolicitud;
 import ar.edu.unlpam.convenios.entidad.Usuario;
 import ar.edu.unlpam.convenios.servicio.AutenticacionServicio;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
