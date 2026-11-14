@@ -18,14 +18,21 @@ import ar.edu.unlpam.convenios.dto.FirmaRespuesta;
 import ar.edu.unlpam.convenios.entidad.ConvenioImplicado;
 import ar.edu.unlpam.convenios.entidad.Usuario;
 import ar.edu.unlpam.convenios.servicio.FirmaServicio;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (name = "Firmas")
 @RestController
 @RequiredArgsConstructor
 public class FirmaControlador {
 
     private final FirmaServicio servicio;
 
+    @Operation (
+        summary = "Firmar un convenio",
+        description = "Registra la firma del usuario logueado, que debe ser uno de los firmantes del convenio. Recibe latitud, longitud y la imagen de la firma a mano (multipart). Solo se puede firmar un convenio Aceptado y una sola vez. Cuando firman todos los implicados, el convenio pasa automáticamente a Firmado"
+    )
     // La app manda multipart: latitud, longitud e "imagen" (PNG de la firma a mano)
     @PostMapping(value = "/convenios/{convenioId}/firmas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -36,11 +43,19 @@ public class FirmaControlador {
         return aRespuesta(servicio.firmar(convenioId, latitud, longitud, imagen));
     }
 
+    @Operation(
+        summary = "Ver las firmas de un convenio",
+        description = "Lista los firmantes con si firmaron y, de ser así, fecha, hora y coordenadas"
+    )
     @GetMapping("/convenios/{convenioId}/firmas")
     public List<FirmaRespuesta> listar(@PathVariable Long convenioId) {
         return servicio.listar(convenioId).stream().map(FirmaControlador::aRespuesta).toList();
     }
 
+    @Operation (
+        summary = "Mis convenios pendientes de firma",
+        description = "Devuelve los convenios Aceptados que el usuario logueado todavía no firmó, del más reciente al más antiguo. El parámetro limite fija la cantidad máxima (10 por defecto en la app). Alimenta “Mis pendientes” de la app"
+    )
     @GetMapping("/firmas/pendientes")
     public List<ConvenioRespuesta> pendientes(@RequestParam(defaultValue = "10") int limite) {
         return servicio.pendientes(Math.min(Math.max(limite, 1), 50));

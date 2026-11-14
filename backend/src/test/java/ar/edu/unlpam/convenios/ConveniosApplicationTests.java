@@ -1,4 +1,4 @@
-package ar.edu.unlpm.convenios;
+package ar.edu.unlpam.convenios;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

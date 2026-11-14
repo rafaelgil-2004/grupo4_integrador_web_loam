@@ -19,14 +19,21 @@ import org.springframework.web.multipart.MultipartFile;
 
 import ar.edu.unlpam.convenios.entidad.Documento;
 import ar.edu.unlpam.convenios.servicio.DocumentoServicio;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag (name = "Documentos")
 @RestController
 @RequiredArgsConstructor
 public class DocumentoControlador {
 
     private final DocumentoServicio servicio;
 
+    @Operation (
+        summary = "Subir un PDF a un convenio",
+        description = "Recibe un PDF (multipart, hasta 20 MB) y lo adjunta al convenio. Valida que sea un PDF real (no solo la extensión). La API escribe una marca en los metadatos del archivo (usuario, convenio, fecha y hora), calcula su SHA-256 y lo guarda fuera de la carpeta pública. Lo puede subir cualquier usuario que vea el convenio. No se admite en convenios Rescindidos o Archivados"
+    )
     @PostMapping(value = "/convenios/{convenioId}/documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Documento subir(@PathVariable Long convenioId,
@@ -34,11 +41,19 @@ public class DocumentoControlador {
         return servicio.subir(convenioId, archivo);
     }
 
+    @Operation (
+        summary = "Listar documentos de un convenio",
+        description = "Devuelve los PDF adjuntos con su nombre, quién y cuándo los subió y su SHA-256 (la marca de verificación)"
+    )
     @GetMapping("/convenios/{convenioId}/documentos")
     public List<Documento> listar(@PathVariable Long convenioId) {
         return servicio.listar(convenioId);
     }
 
+    @Operation (
+        summary = "Descargar un documento",
+        description = "Entrega el PDF como archivo. Requiere token y permiso para ver el convenio al que pertenece, por lo que el archivo no es accesible por una URL directa"
+    )
     // "inline" para que el <iframe> de la web y el visor de la app lo muestren sin forzar descarga
     @GetMapping("/documentos/{id}/descargar")
     public ResponseEntity<Resource> descargar(@PathVariable Long id) {

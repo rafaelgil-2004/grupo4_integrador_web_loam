@@ -16,9 +16,12 @@ import ar.edu.unlpam.convenios.dto.ObservacionSolicitud;
 import ar.edu.unlpam.convenios.entidad.Observacion;
 import ar.edu.unlpam.convenios.entidad.Usuario;
 import ar.edu.unlpam.convenios.servicio.ObservacionServicio;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag (name = "Obseervaciones")
 @RestController
 @RequestMapping("/convenios/{convenioId}/observaciones")
 @RequiredArgsConstructor
@@ -26,11 +29,19 @@ public class ObservacionControlador {
 
     private final ObservacionServicio servicio;
 
+    @Operation (
+        summary = "Listar los comentarios de un convenio",
+        description = "Devuelve los comentarios del convenio, del más reciente al más antiguo. Solo los ven quienes tienen acceso al convenio (firmantes, Gestión de su unidad y Administración)"
+    )
     @GetMapping
     public List<ObservacionRespuesta> listar(@PathVariable Long convenioId) {
         return servicio.listar(convenioId).stream().map(ObservacionControlador::aRespuesta).toList();
     }
 
+    @Operation (
+        summary = "Comentar un convenio",
+        description = "Agrega un comentario del usuario logueado. Si el texto es detectado como ofensivo, no se guarda: queda registrado como “comentario ofensivo” con la marca ofensivo en verdadero"
+    )
     // El filtro de comentarios ofensivos lo aplica el servicio
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
