@@ -2,7 +2,6 @@ package ar.edu.unlpam.convenios.dto;
 
 import ar.edu.unlpam.convenios.entidad.Convenio;
 import ar.edu.unlpam.convenios.entidad.ConvenioImplicado;
-import ar.edu.unlpam.convenios.entidad.Unidad;
 import ar.edu.unlpam.convenios.entidad.enums.EstadoConvenio;
 import ar.edu.unlpam.convenios.entidad.enums.Subtipo;
 import ar.edu.unlpam.convenios.entidad.enums.TipoConvenio;
@@ -27,7 +26,7 @@ public class ConvenioRespuesta{
     private TipoConvenio tipo;
     private Subtipo subtipo;
     private EstadoConvenio estado;
-    private Unidad unidad;
+    private UnidadRespuesta unidad;   
     private String organizacion;
     private String objeto;
     private String resolucion;
@@ -42,17 +41,23 @@ public class ConvenioRespuesta{
     private String creadoPorNombre;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
-    private List<ConvenioImplicado> listaImplicados;
+    private List<FirmaRespuesta> listaImplicados; 
 
     // Hace de "mapeador": arma la respuesta a partir de la entidad
     public static ConvenioRespuesta desde(Convenio c, String vigencia, List<ConvenioImplicado> implicados) {
         Convenio padre = c.getConvenioPadre();
-        return new ConvenioRespuesta(c.getId(),c.getCodigo(),c.getTitulo(),c.getTipo(),c.getSubtipo(),c.getEstado(),c.getUnidad(),
+        UnidadRespuesta unidadResp = new UnidadRespuesta(c.getUnidad().getId(), c.getUnidad().getNombre());
+        List<FirmaRespuesta> firmas = implicados.stream().map(i -> new FirmaRespuesta(
+        i.getId(), c.getId(), i.getUsuario().getId(),
+        i.getUsuario().getNombre() + " " + i.getUsuario().getApellido(),
+        i.getFirmado(), i.getFechaFirma(), i.getLatitud(), i.getLongitud())).toList();
+
+        return new ConvenioRespuesta(c.getId(),c.getCodigo(),c.getTitulo(),c.getTipo(),c.getSubtipo(),c.getEstado(),unidadResp,
                     c.getOrganizacion(),c.getObjeto(),c.getResolucion(),c.getExpediente(),c.getFechaInicio(),c.getFechaVencimiento(),
                     c.getFechaFirma(),
                     padre != null ? padre.getId() : null,vigencia,
                     c.getRevision(),c.getCreadoPor().getId(),c.getCreadoPor().getNombre(),
-                    c.getFechaCreacion(),c.getFechaActualizacion(), implicados
+                    c.getFechaCreacion(),c.getFechaActualizacion(), firmas
                 );
     }
 }

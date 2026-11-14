@@ -1,0 +1,39 @@
+:root {
+    --naranja: #F26722;
+    --naranja-hover: #EB8022;
+    --bordo: #8C0000;
+    --amarillo: #FFF100;
+    --gris-footer: #333333;
+    --gris-navbar: #848484;
+    --gris-texto: #626262;
+    --gris-titulo: #404040;
+}
+
+body { color: var(--gris-texto); }
+h1, h2, h3, h4, h5, h6, .titulo { color: var(--gris-titulo); }
+a { color: var(--bordo); }
+
+/* Botón principal: el texto oscuro cumple el contraste mínimo de WCAG (4.5:1);
+   con texto blanco sobre este naranja da solo 3.1:1 */
+.btn-principal {
+    background-color: var(--naranja);
+    border-color: var(--naranja);
+    color: #212529;
+    font-weight: 500;
+}
+.btn-principal:hover,
+.btn-principal:focus-visible,
+.btn-principal:active {
+    background-color: var(--naranja-hover);
+    border-color: var(--naranja-hover);
+    color: #212529;
+}
+
+/* Login */
+.pagina-login {
+    min-height: 100vh;
+    display: flex;
+    background: linear-gradient(135deg, var(--naranja), var(--amarillo));
+}
+.contenedor-login { margin: auto; width: 100%; max-width: 420px; padding: 1rem; }
+.tarjeta-login { border: 0; border-radius: .75rem; }

@@ -22,7 +22,7 @@ import java.util.List;
 @Configuration
 public class ConfiguracionCors {
 
-    @Bean
+    @Bean("corsConfigurationSource") 
     public CorsConfigurationSource corsConfigurationSource(
             @Value("${cors.origenes-permitidos:http://localhost,http://127.0.0.1}")
             List<String> origenesPermitidos) {

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import ar.edu.unlpam.convenios.dto.LoginRespuesta;
 import ar.edu.unlpam.convenios.dto.LoginSolicitud;
+import ar.edu.unlpam.convenios.dto.UsuarioRespuesta;
 import ar.edu.unlpam.convenios.entidad.Usuario;
 import ar.edu.unlpam.convenios.excepcion.NoAutenticadoException;
 import ar.edu.unlpam.convenios.repositorio.UsuarioRepositorio;
@@ -26,7 +27,7 @@ public class AutenticacionServicio {
             .filter(u -> u.getActivo())
             .filter(u -> codificador.matches(s.password(), u.getPasswordHash()))
             .orElseThrow(() -> new NoAutenticadoException("Credenciales inválidas"));
-        return new LoginRespuesta(jwtServicio.generarToken(usuario), usuario);
+        return new LoginRespuesta(jwtServicio.generarToken(usuario), UsuarioRespuesta.desde(usuario));
     }
 
     // GET /auth/datosUsuario

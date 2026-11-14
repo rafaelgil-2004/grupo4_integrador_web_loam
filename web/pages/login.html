@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Iniciar sesión | Convenios UNLPam</title>
+    <link rel="stylesheet" href="../recursos/bootstrap/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body class="pagina-login">
+    <main class="contenedor-login">
+        <div class="card tarjeta-login shadow">
+            <div class="card-body p-4">
+                <h1 class="h4 titulo text-center mb-1">Gestión de Convenios</h1>
+                <p class="text-center mb-4">Universidad Nacional de La Pampa</p>
+
+                <div id="alertas"></div>
+
+                <!-- novalidate: la validación la muestra Bootstrap, no el globo del navegador -->
+                <form id="formularioLogin" novalidate>
+                    <div class="mb-3">
+                        <label for="mail" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="mail"
+                               autocomplete="username" required autofocus>
+                        <div class="invalid-feedback">Ingrese un correo válido.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password"
+                               autocomplete="current-password" required>
+                        <div class="invalid-feedback">Ingrese su contraseña.</div>
+                    </div>
+                    <button type="submit" class="btn btn-principal w-100" id="botonIngresar">
+                        <span class="spinner-border spinner-border-sm d-none" id="girando"
+                              aria-hidden="true"></span>
+                        <span id="textoBoton">Ingresar</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../js/paginas/login.js"></script>
+</body>
+</html>
