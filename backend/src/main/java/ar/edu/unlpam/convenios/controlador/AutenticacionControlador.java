@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.unlpam.convenios.dto.LoginRespuesta;
 import ar.edu.unlpam.convenios.dto.LoginSolicitud;
-import ar.edu.unlpam.convenios.entidad.Usuario;
+import ar.edu.unlpam.convenios.dto.UsuarioRespuesta;
 import ar.edu.unlpam.convenios.servicio.AutenticacionServicio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +37,7 @@ public class AutenticacionControlador {
       description = "Devuelve los datos del usuario dueño del token (nombre, mail, rol y unidad). La app lo usa para restaurar la sesión. Responde 401 si el usuario fue desactivado")
     // Devuelve el usuario del token; la app lo usa para validar la sesión guardada
     @GetMapping("/datosUsuario")
-    public Usuario datosUsuario() {
+    public UsuarioRespuesta datosUsuario() {
         return servicio.datosUsuario();
     }
 }

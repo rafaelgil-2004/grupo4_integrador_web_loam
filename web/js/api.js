@@ -106,3 +106,16 @@ export const listarUsuarios = (filtros = {}) => pedir(`/usuarios?${aParametros(f
 // En un convenio Aceptado la API exige el motivo; en un Borrador no hace falta
 export const eliminarDocumento = (idDocumento, motivo = null) =>
     pedir(`/documentos/${idDocumento}${motivo ? `?motivo=${encodeURIComponent(motivo)}` : ""}`, { metodo: "DELETE" });
+
+//usuarios
+// usuarios (solo Administración)
+export const crearUsuario = (datos) =>
+    pedir("/usuarios", { metodo: "POST", cuerpo: datos });
+
+// Si "password" no viaja (o viene vacío), la API conserva la contraseña actual
+export const actualizarUsuario = (id, datos) =>
+    pedir(`/usuarios/${id}`, { metodo: "PUT", cuerpo: datos });
+
+// Baja lógica: el usuario desactivado no puede iniciar sesión, pero conserva su historial
+export const cambiarActivoUsuario = (id, activo) =>
+    pedir(`/usuarios/${id}/activo?activo=${activo}`, { metodo: "PATCH" });

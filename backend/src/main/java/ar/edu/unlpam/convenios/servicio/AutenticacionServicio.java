@@ -2,6 +2,7 @@ package ar.edu.unlpam.convenios.servicio;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.unlpam.convenios.dto.LoginRespuesta;
 import ar.edu.unlpam.convenios.dto.LoginSolicitud;
@@ -21,6 +22,7 @@ public class AutenticacionServicio {
     private final  PasswordEncoder codificador;
     private final JwtServicio jwtServicio;
 
+    @Transactional (readOnly = true)
     public LoginRespuesta login(LoginSolicitud s) {
         // Mismo mensaje para mail inexistente, clave mala o usuario inactivo
         Usuario usuario = usuarioRepo.findByMail(s.mail().trim().toLowerCase())
@@ -31,9 +33,11 @@ public class AutenticacionServicio {
     }
 
     // GET /auth/datosUsuario
-    public Usuario datosUsuario() {
-        return usuarioRepo.findById(UsuarioAutenticado.actual().id())
-            .filter(u -> u.getActivo())
+    @Transactional(readOnly = true)
+    public UsuarioRespuesta datosUsuario() {          // <- ahora devuelve el DTO
+        Usuario u = usuarioRepo.findById(UsuarioAutenticado.actual().id())
+            .filter(x -> x.getActivo())
             .orElseThrow(() -> new NoAutenticadoException("Usuario inactivo o inexistente"));
+        return UsuarioRespuesta.desde(u);
     }
 }
