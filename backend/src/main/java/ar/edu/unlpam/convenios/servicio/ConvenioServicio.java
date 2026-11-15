@@ -414,7 +414,7 @@ public class ConvenioServicio {
         }
     }
 
-    private void anularFirmas(Convenio c) {
+    void anularFirmas(Convenio c) {
         for (ConvenioImplicado i : implicadoRepo.findByConvenioId(c.getId())) {
             i.setFirmado(false);
             i.setFechaFirma(null);

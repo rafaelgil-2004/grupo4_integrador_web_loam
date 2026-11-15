@@ -13,6 +13,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import ar.edu.unlpam.convenios.dto.DocumentoRespuesta;
@@ -82,6 +84,50 @@ public class DocumentoServicio {
             .sorted(Comparator.comparing(Documento::getFechaCarga).reversed()) // el más reciente primero
             .map(DocumentoRespuesta::desde)
             .toList();
+    }
+
+    // Solo Administración y Gestión de la unidad. En un Borrador se borra sin más. En un Aceptado
+    // cambia el contenido del convenio: exige motivo, anula las firmas y no lo deja sin PDF
+    // (para reemplazar un PDF se sube el nuevo y después se elimina el viejo).
+    // En Firmado, Rescindido y Archivado no se puede.
+    public void eliminar(Long documentoId, String motivo) {
+        Documento d = documentoRepo.findById(documentoId)
+            .orElseThrow(() -> new NoEncontradoException("Documento no encontrado"));
+        Convenio c = convenioServicio.obtenerVisible(d.getConvenio().getId());
+        convenioServicio.exigirEscritura(c);
+
+        String detalle = d.getNombre();
+        if (c.getEstado() == EstadoConvenio.ACEPTADO) {
+            if (motivo == null || motivo.isBlank())
+                throw new SolicitudInvalidaException("Debe indicar el motivo de la modificación");
+            if (documentoRepo.findByConvenioId(c.getId()).size() <= 1)
+                throw new ConflictoException("ULTIMO_DOCUMENTO",
+                    "Un convenio aceptado necesita al menos un PDF: suba el nuevo antes de eliminar este");
+            convenioServicio.anularFirmas(c);
+            detalle = d.getNombre() + " — " + motivo.trim();
+        } else if (c.getEstado() != EstadoConvenio.BORRADOR) {
+            throw new ConflictoException("TRANSICION_INVALIDA",
+                "No se pueden eliminar documentos de un convenio " + c.getEstado());
+        }
+
+        String ruta = d.getRutaArchivo();
+        documentoRepo.delete(d);
+        historialServicio.registrar(c, "ELIMINAR_DOCUMENTO", c.getEstado(), c.getEstado(), detalle);
+        borrarArchivoDespuesDelCommit(ruta);
+    }
+
+    // El PDF se borra del disco solo si la transacción terminó bien
+    private void borrarArchivoDespuesDelCommit(String ruta) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    almacenamiento.borrar(ruta);
+                } catch (RuntimeException e) {
+                    // El registro ya se borró: un archivo huérfano no debe devolver error
+                }
+            }
+        });
     }
 
     // Valida que el usuario pueda ver el convenio del documento

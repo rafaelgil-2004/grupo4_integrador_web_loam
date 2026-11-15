@@ -89,14 +89,20 @@ export function subirDocumento(id, archivo) {
 export const descargarDocumento = (id) => pedir(`/documentos/${id}/descargar`, { formato: "blob" });
 
 //creacion/edicion convenios
-
 export const crearConvenio = (datos) =>
     pedir("/convenios", { metodo: "POST", cuerpo: datos });
 
+// "datos" lleva también la revision que se leyó (control de concurrencia) y, si el
+// convenio está Aceptado, el motivo de la modificación
 export const actualizarConvenio = (id, datos) =>
     pedir(`/convenios/${id}`, { metodo: "PUT", cuerpo: datos });
 
 export const aceptarConvenio = (id) =>
     pedir(`/convenios/${id}/aceptar`, { metodo: "POST" });
 
+// Gestión recibe solo usuarios activos de consulta; Administración recibe todos
 export const listarUsuarios = (filtros = {}) => pedir(`/usuarios?${aParametros(filtros)}`);
+
+// En un convenio Aceptado la API exige el motivo; en un Borrador no hace falta
+export const eliminarDocumento = (idDocumento, motivo = null) =>
+    pedir(`/documentos/${idDocumento}${motivo ? `?motivo=${encodeURIComponent(motivo)}` : ""}`, { metodo: "DELETE" });

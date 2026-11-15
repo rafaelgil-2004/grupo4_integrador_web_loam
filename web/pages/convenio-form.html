@@ -158,6 +158,34 @@
         </form>
     </main>
 
+    <!-- Confirmación para eliminar un documento -->
+    <div class="modal fade" id="modalEliminarDocumento" tabindex="-1" aria-labelledby="tituloModalEliminar" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="tituloModalEliminar">Eliminar documento</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="textoModalEliminar"></p>
+                    <div id="grupoMotivoEliminar" class="d-none">
+                        <div class="alert alert-warning">
+                            El convenio está aceptado: al eliminar el documento se anulan las firmas registradas y los firmantes deberán firmar de nuevo.
+                        </div>
+                        <label for="motivoEliminar" class="form-label">Motivo <span class="text-danger" aria-hidden="true">*</span></label>
+                        <input type="text" id="motivoEliminar" class="form-control" maxlength="100">
+                        <div class="invalid-feedback" id="motivoEliminarError"></div>
+                    </div>
+                    <div id="errorModalEliminar" aria-live="polite"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="botonConfirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer id="pie" class="pie"></footer>
 
     <script src="../recursos/bootstrap/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>

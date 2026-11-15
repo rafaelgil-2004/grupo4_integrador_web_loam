@@ -9,9 +9,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,5 +68,16 @@ public class DocumentoControlador {
             .header(HttpHeaders.CONTENT_DISPOSITION,
                 ContentDisposition.inline().filename(d.getNombre(), StandardCharsets.UTF_8).build().toString())
             .body(archivo);
+    }
+
+    @Operation (
+        summary = "Eliminar un documento",
+        description = "Solo Administración y Gestión de la unidad. En un Borrador se elimina sin más; en un Aceptado hace falta el motivo, se anulan las firmas y el convenio debe conservar al menos un PDF. No se puede en convenios Firmados, Rescindidos o Archivados. Borra también el archivo del servidor"
+    )
+    @DeleteMapping("/documentos/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('ADMINISTRACION','GESTION')")
+    public void eliminar(@PathVariable Long id, @RequestParam(required = false) String motivo) {
+        servicio.eliminar(id, motivo);
     }
 }

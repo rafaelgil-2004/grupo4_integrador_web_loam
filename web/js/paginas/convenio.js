@@ -10,7 +10,7 @@ const LIMITE_BYTES = 20 * 1024 * 1024;
 const NOMBRES_ACCION = {
     CREAR: "Creación", EDITAR: "Edición", MODIFICAR: "Modificación", ACEPTAR: "Aceptación",
     FIRMAR: "Firma", FIRMADO: "Firmado completo", RESCINDIR: "Rescisión", ARCHIVAR: "Archivo",
-    SUBIR_DOCUMENTO: "Documento subido",
+    SUBIR_DOCUMENTO: "Documento subido", ELIMINAR_DOCUMENTO: "Documento eliminado",
 };
 
 const idConvenio = parametroUrl("id");
@@ -92,6 +92,13 @@ function pintarFirmantes(firmantes) {
                     crearElemento("td", "", ubicacion));
         return fila;
     }));
+}
+
+function pintarAcciones(c) {
+    if (c.estado !== "BORRADOR" && c.estado !== "ACEPTADO") return; // solo esos estados se editan
+    const editar = crearElemento("a", "btn btn-principal", "Editar");
+    editar.href = `convenio-form.html?id=${c.id}`;
+    document.getElementById("acciones").append(editar);
 }
 
 // ---------- Documentos ----------
@@ -325,6 +332,7 @@ async function iniciar() {
     pintarCabecera(convenio);
     pintarDatos(convenio);
     pintarFirmantes(convenio.listaImplicados ?? []);
+    pintarAcciones(convenio);
     prepararSubida();
     prepararObservaciones();
     mostrar(document.getElementById("cargando"), false);

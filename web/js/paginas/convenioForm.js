@@ -1,6 +1,7 @@
+// Página: convenio-form.html (crear y editar un convenio)
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerConvenio, crearConvenio, actualizarConvenio, aceptarConvenio, listarConvenios,
-         listarUnidades, listarUsuarios, listarDocumentos, subirDocumento } from "../api.js";
+         listarUnidades, listarUsuarios, listarDocumentos, subirDocumento, eliminarDocumento } from "../api.js";
 import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver, nombreEstado } from "../ui.js";
 import { parametroUrl, crearElemento } from "../utils.js";
 
@@ -179,8 +180,16 @@ async function cargarDocumentosExistentes() {
         const documentos = await listarDocumentos(convenioId);
         cantidadDocumentos = documentos.length;
         if (documentos.length === 0) { mostrar(contenedor, false); return; }
-        const lista = crearElemento("ul", "mb-1");
-        documentos.forEach((d) => lista.append(crearElemento("li", "", d.nombre)));
+        const lista = crearElemento("ul", "list-group mb-1");
+        documentos.forEach((d) => {
+            const boton = crearElemento("button", "btn btn-sm btn-outline-danger", "Eliminar");
+            boton.type = "button";
+            boton.setAttribute("aria-label", `Eliminar ${d.nombre}`);
+            boton.addEventListener("click", () => pedirEliminacion(d));
+            const fila = crearElemento("li", "list-group-item d-flex justify-content-between align-items-center gap-2");
+            fila.append(crearElemento("span", "text-break", d.nombre), boton);
+            lista.append(fila);
+        });
         contenedor.replaceChildren(
             crearElemento("p", "mb-1 fw-semibold", `Documentos ya cargados (${documentos.length})`),
             lista,
@@ -188,6 +197,47 @@ async function cargarDocumentosExistentes() {
         mostrar(contenedor, true);
     } catch (error) {
         mostrarAlerta(alertas, error.message);
+    }
+}
+
+// ---------- Eliminar un documento ----------
+
+const modalEliminar = new bootstrap.Modal(campo("modalEliminarDocumento"));
+let documentoAEliminar = null;
+
+function pedirEliminacion(documento) {
+    documentoAEliminar = documento;
+    campo("textoModalEliminar").textContent = `¿Eliminar «${documento.nombre}»? Esta acción no se puede deshacer.`;
+    // En un convenio aceptado, eliminar es una modificación: pide motivo y anula las firmas
+    mostrar(campo("grupoMotivoEliminar"), estadoConvenio === "ACEPTADO");
+    const motivo = campo("motivoEliminar");
+    motivo.value = "";
+    motivo.classList.remove("is-invalid");
+    limpiarAlerta(campo("errorModalEliminar"));
+    modalEliminar.show();
+}
+
+async function confirmarEliminacion() {
+    const aceptado = estadoConvenio === "ACEPTADO";
+    const motivo = campo("motivoEliminar").value.trim();
+    if (aceptado && !motivo) {
+        marcarInvalido("motivoEliminar", "Indique el motivo.");
+        campo("motivoEliminar").focus();
+        return;
+    }
+    const boton = campo("botonConfirmarEliminar");
+    boton.disabled = true;
+    try {
+        await eliminarDocumento(documentoAEliminar.id, aceptado ? motivo : null);
+        modalEliminar.hide();
+        await cargarDocumentosExistentes();
+        mostrarAlerta(alertas, aceptado
+            ? "Documento eliminado. Se anularon las firmas del convenio."
+            : "Documento eliminado.", "success");
+    } catch (error) {
+        mostrarAlerta(campo("errorModalEliminar"), error.message);
+    } finally {
+        boton.disabled = false;
     }
 }
 
@@ -373,6 +423,7 @@ async function guardar(aceptar) {
             await subirDocumento(convenio.id, archivo);
             campo("archivoPdf").value = "";
             cantidadDocumentos++;
+            await cargarDocumentosExistentes(); // la lista muestra el archivo recién subido
         }
         if (aceptar) {
             paso = "aceptar";
@@ -420,6 +471,8 @@ async function iniciar() {
     formulario.addEventListener("input", (evento) => evento.target.classList.remove("is-invalid"));
     formulario.addEventListener("submit", (evento) => { evento.preventDefault(); guardar(false); });
     botonGuardarAceptar.addEventListener("click", () => guardar(true));
+    campo("botonConfirmarEliminar").addEventListener("click", confirmarEliminacion);
+    campo("motivoEliminar").addEventListener("input", (evento) => evento.target.classList.remove("is-invalid"));
 
     mostrar(campo("cargando"), false);
     mostrar(formulario, true);
