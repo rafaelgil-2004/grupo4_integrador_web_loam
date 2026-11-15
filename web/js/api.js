@@ -87,3 +87,16 @@ export function subirDocumento(id, archivo) {
 
 // Devuelve un Blob (el contenido binario del PDF)
 export const descargarDocumento = (id) => pedir(`/documentos/${id}/descargar`, { formato: "blob" });
+
+//creacion/edicion convenios
+
+export const crearConvenio = (datos) =>
+    pedir("/convenios", { metodo: "POST", cuerpo: datos });
+
+export const actualizarConvenio = (id, datos) =>
+    pedir(`/convenios/${id}`, { metodo: "PUT", cuerpo: datos });
+
+export const aceptarConvenio = (id) =>
+    pedir(`/convenios/${id}/aceptar`, { metodo: "POST" });
+
+export const listarUsuarios = (filtros = {}) => pedir(`/usuarios?${aParametros(filtros)}`);
