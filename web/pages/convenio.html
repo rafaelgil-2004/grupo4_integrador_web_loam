@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Convenio | Convenios UNLPam</title>
+    <link rel="stylesheet" href="../recursos/bootstrap/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <header id="navbar"></header>
+
+    <main class="container py-4 flex-grow-1">
+        <button type="button" class="btn btn-link ps-0 mb-2" id="botonVolver">← Volver</button>
+        <div id="alertas"></div>
+
+        <div id="cargando" class="text-center py-5">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
+
+        <div id="contenido" class="d-none">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <p class="mb-0 text-body-secondary" id="codigo"></p>
+                    <h1 class="h3 titulo mb-2" id="titulo"></h1>
+                    <div class="d-flex flex-wrap gap-2" id="insignias"></div>
+                </div>
+                <!-- Botones de acción (próximo paso) -->
+                <div class="d-flex flex-wrap gap-2" id="acciones"></div>
+            </div>
+
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-datos" data-bs-toggle="tab" data-bs-target="#pestana-datos"
+                            type="button" role="tab" aria-controls="pestana-datos" aria-selected="true">Datos</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-documentos" data-bs-toggle="tab" data-bs-target="#pestana-documentos"
+                            type="button" role="tab" aria-controls="pestana-documentos" aria-selected="false">Documentos</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-observaciones" data-bs-toggle="tab" data-bs-target="#pestana-observaciones"
+                            type="button" role="tab" aria-controls="pestana-observaciones" aria-selected="false">Observaciones</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-historial" data-bs-toggle="tab" data-bs-target="#pestana-historial"
+                            type="button" role="tab" aria-controls="pestana-historial" aria-selected="false">Historial</button>
+                </li>
+            </ul>
+
+            <div class="tab-content border border-top-0 rounded-bottom p-3">
+                <!-- Datos -->
+                <div class="tab-pane fade show active" id="pestana-datos" role="tabpanel" aria-labelledby="tab-datos" tabindex="0">
+                    <dl class="row mb-4" id="listaDatos"></dl>
+                    <h2 class="h5 titulo">Firmantes</h2>
+                    <p class="d-none text-body-secondary" id="sinFirmantes">Este convenio no tiene firmantes asignados.</p>
+                    <div class="table-responsive" id="contenedorFirmantes">
+                        <table class="table align-middle mb-0">
+                            <caption class="visually-hidden">Firmantes del convenio</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Firmante</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Fecha y hora</th>
+                                    <th scope="col">Ubicación (lat, lon)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoFirmantes"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Documentos -->
+                <div class="tab-pane fade" id="pestana-documentos" role="tabpanel" aria-labelledby="tab-documentos" tabindex="0">
+                    <div id="alertasDocumentos"></div>
+                    <p class="d-none text-body-secondary" id="sinDocumentos">Este convenio todavía no tiene documentos.</p>
+                    <div class="list-group mb-3" id="listaDocumentos"></div>
+
+                    <section class="d-none mb-4" id="seccionVisor" aria-labelledby="nombreVisor">
+                        <h2 class="h6 titulo" id="nombreVisor"></h2>
+                        <iframe id="visorPdf" class="visor-pdf" title="Vista previa del documento"></iframe>
+                    </section>
+
+                    <form id="formularioSubida" class="border rounded p-3" novalidate>
+                        <label for="archivoPdf" class="form-label">Adjuntar un PDF (hasta 20 MB)</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="archivoPdf" accept="application/pdf,.pdf">
+                            <button class="btn btn-principal" type="submit" id="botonSubir">Subir</button>
+                        </div>
+                        <div class="form-text" id="avisoSubida"></div>
+                    </form>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="tab-pane fade" id="pestana-observaciones" role="tabpanel" aria-labelledby="tab-observaciones" tabindex="0">
+                    <div id="alertasObservaciones"></div>
+                    <p class="d-none text-body-secondary" id="sinObservaciones">Todavía no hay observaciones.</p>
+                    <div class="list-group mb-3" id="listaObservaciones"></div>
+                    <form id="formularioObservacion" novalidate>
+                        <label for="textoObservacion" class="form-label">Nueva observación</label>
+                        <textarea class="form-control mb-2" id="textoObservacion" rows="3" maxlength="1000"></textarea>
+                        <button type="submit" class="btn btn-principal" id="botonObservar">Enviar</button>
+                    </form>
+                </div>
+
+                <!-- Historial -->
+                <div class="tab-pane fade" id="pestana-historial" role="tabpanel" aria-labelledby="tab-historial" tabindex="0">
+                    <div id="alertasHistorial"></div>
+                    <p class="d-none text-body-secondary" id="sinHistorial">No hay movimientos registrados.</p>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <caption class="visually-hidden">Historial del convenio</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Fecha y hora</th>
+                                    <th scope="col">Usuario</th>
+                                    <th scope="col">Acción</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoHistorial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="pie" class="pie"></footer>
+
+    <script src="../recursos/bootstrap/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/paginas/convenio.js"></script>
+</body>
+</html>

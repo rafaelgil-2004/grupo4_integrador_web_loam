@@ -2,12 +2,14 @@ package ar.edu.unlpam.convenios.repositorio;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import ar.edu.unlpam.convenios.entidad.Historial;
 
 public interface HistorialRepositorio extends JpaRepository<Historial, Long> {
 
+    @EntityGraph(attributePaths = "usuario")
     List<Historial> findByConvenioIdOrderByFechaHoraDesc(Long convenioId);
 
     // Para "últimos movimientos" del inicio

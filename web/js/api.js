@@ -6,7 +6,7 @@ import { obtenerToken, cerrarSesion } from "./sesion.js";
  * - publica: true  → no envía token ni trata el 401 como sesión vencida (solo el login)
  * - cuerpo: objeto → se envía como JSON; FormData → se envía tal cual (archivos)
  */
-export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false } = {}) {
+export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false, formato = "json" } = {}) {
     const cabeceras = {};
     if (!publica && obtenerToken()) {
         cabeceras["Authorization"] = `Bearer ${obtenerToken()}`;
@@ -44,6 +44,8 @@ export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false } = 
         throw excepcion;
     }
 
+    if (formato === "blob") return respuesta.blob();
+
     const tipo = respuesta.headers.get("Content-Type") ?? "";
     return tipo.includes("json") ? respuesta.json() : null;
 }
@@ -55,11 +57,33 @@ export const obtenerResumen = () => pedir("/dashboard/resumen");
 
 export const obtenerMovimientos = (limite = 10) => pedir(`/dashboard/movimientos?limite=${limite}`);
 
-// Sirve también para el listado: ignora los filtros vacíos
-export function listarConvenios(filtros = {}) {
+function aParametros(filtros) {
     const parametros = new URLSearchParams();
     for (const [clave, valor] of Object.entries(filtros)) {
         if (valor !== undefined && valor !== null && valor !== "") parametros.set(clave, valor);
     }
-    return pedir(`/convenios?${parametros}`);
+    return parametros;
 }
+
+// Sirve también para el listado: ignora los filtros vacíos
+export const listarConvenios = (filtros = {}) => pedir(`/convenios?${aParametros(filtros)}`);
+export const obtenerArbol = (filtros = {}) => pedir(`/convenios/arbol?${aParametros(filtros)}`);
+export const listarUnidades = () => pedir("/unidades");
+
+//convenio
+export const obtenerConvenio = (id) => pedir(`/convenios/${id}`);
+export const obtenerHistorial = (id) => pedir(`/convenios/${id}/historial`);
+export const listarDocumentos = (id) => pedir(`/convenios/${id}/documentos`);
+export const listarObservaciones = (id) => pedir(`/convenios/${id}/observaciones`);
+
+export const crearObservacion = (id, texto) =>
+    pedir(`/convenios/${id}/observaciones`, { metodo: "POST", cuerpo: { texto } });
+
+export function subirDocumento(id, archivo) {
+    const datos = new FormData();
+    datos.append("archivo", archivo); // el nombre del campo lo exige la API (@RequestPart("archivo"))
+    return pedir(`/convenios/${id}/documentos`, { metodo: "POST", cuerpo: datos });
+}
+
+// Devuelve un Blob (el contenido binario del PDF)
+export const descargarDocumento = (id) => pedir(`/documentos/${id}/descargar`, { formato: "blob" });

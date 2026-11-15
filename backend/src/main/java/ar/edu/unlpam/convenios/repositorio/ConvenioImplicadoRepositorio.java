@@ -3,12 +3,14 @@ package ar.edu.unlpam.convenios.repositorio;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import ar.edu.unlpam.convenios.entidad.ConvenioImplicado;
 
 public interface ConvenioImplicadoRepositorio extends JpaRepository<ConvenioImplicado, Long> {
 
+    @EntityGraph(attributePaths = "usuario")
     List<ConvenioImplicado> findByConvenioId(Long convenioId);
 
     // Convenios donde participa un usuario (visibilidad de Consulta)

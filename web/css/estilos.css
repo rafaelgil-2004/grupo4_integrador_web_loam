@@ -63,3 +63,13 @@ a { color: var(--bordo); }
 a.tarjeta-resumen:hover,
 a.tarjeta-resumen:focus-visible { border-left-color: var(--naranja-hover); box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15); }
 .tarjeta-numero { font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--gris-titulo); }
+
+/* Vista de árbol */
+.arbol-raiz, .arbol-lista { list-style: none; margin: 0; }
+.arbol-raiz { padding-left: 0; }
+.arbol-lista { padding-left: 1.5rem; margin-left: .5rem; border-left: 2px solid #dee2e6; }
+.arbol-nodo { padding: .35rem 0; }
+.arbol-nodo summary { cursor: pointer; }
+
+/*pdf*/
+.visor-pdf { width: 100%; height: 70vh; border: 1px solid #dee2e6; border-radius: .375rem; }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ar.edu.unlpam.convenios.dto.DocumentoRespuesta;
 import ar.edu.unlpam.convenios.entidad.Documento;
 import ar.edu.unlpam.convenios.servicio.DocumentoServicio;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,7 @@ public class DocumentoControlador {
     )
     @PostMapping(value = "/convenios/{convenioId}/documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Documento subir(@PathVariable Long convenioId,
+    public DocumentoRespuesta subir(@PathVariable Long convenioId,
                            @RequestPart("archivo") MultipartFile archivo) {
         return servicio.subir(convenioId, archivo);
     }
@@ -46,7 +47,7 @@ public class DocumentoControlador {
         description = "Devuelve los PDF adjuntos con su nombre, quién y cuándo los subió y su SHA-256 (la marca de verificación)"
     )
     @GetMapping("/convenios/{convenioId}/documentos")
-    public List<Documento> listar(@PathVariable Long convenioId) {
+    public List<DocumentoRespuesta> listar(@PathVariable Long convenioId) {
         return servicio.listar(convenioId);
     }
 

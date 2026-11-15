@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import ar.edu.unlpam.convenios.dto.DocumentoRespuesta;
 import ar.edu.unlpam.convenios.entidad.Convenio;
 import ar.edu.unlpam.convenios.entidad.Documento;
 import ar.edu.unlpam.convenios.entidad.Usuario;
@@ -39,13 +41,15 @@ public class DocumentoServicio {
     private final AlmacenamientoServicio almacenamiento;
     private final HistorialServicio historialServicio;
 
-    public Documento subir(Long convenioId, MultipartFile archivo) {
+    public DocumentoRespuesta subir(Long convenioId, MultipartFile archivo) {
         Convenio c = convenioServicio.obtenerVisible(convenioId);
         if (c.getEstado() == EstadoConvenio.RESCINDIDO || c.getEstado() == EstadoConvenio.ARCHIVADO)
             throw new ConflictoException("TRANSICION_INVALIDA",
                 "No se pueden adjuntar documentos a un convenio " + c.getEstado());
+    
         if (archivo == null || archivo.isEmpty())
             throw new SolicitudInvalidaException("Debe adjuntar un archivo");
+
 
         String nombre = archivo.getOriginalFilename() == null ? "documento.pdf" : archivo.getOriginalFilename();
         if (nombre.length() > 150) nombre = nombre.substring(nombre.length() - 150);
@@ -69,12 +73,15 @@ public class DocumentoServicio {
         d.setFechaCarga(LocalDateTime.now());
         Documento guardado = documentoRepo.save(d);
         historialServicio.registrar(c, "SUBIR_DOCUMENTO", c.getEstado(), c.getEstado(), nombre);
-        return guardado;
+        return DocumentoRespuesta.desde(guardado);  
     }
 
-    public List<Documento> listar(Long convenioId) {
+    public List<DocumentoRespuesta> listar(Long convenioId) {
         convenioServicio.obtenerVisible(convenioId);
-        return documentoRepo.findByConvenioId(convenioId);
+        return documentoRepo.findByConvenioId(convenioId).stream()
+            .sorted(Comparator.comparing(Documento::getFechaCarga).reversed()) // el más reciente primero
+            .map(DocumentoRespuesta::desde)
+            .toList();
     }
 
     // Valida que el usuario pueda ver el convenio del documento
