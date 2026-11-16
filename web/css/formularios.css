@@ -1,0 +1,68 @@
+/* ============================================================
+   Pantallas de formulario (crear convenio, registrar usuario)
+   En estas páginas el menú de navegación no aparece.
+   Orden de carga: bootstrap → estilos.css → comun.css → formularios.css
+   ============================================================ */
+
+.contenedor-formulario { width: 100%; max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem; flex: 1; }
+.contenedor-formulario h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.contenedor-formulario .subtitulo { margin: .25rem 0 1.25rem; font-size: .8rem; }
+
+/* "← Volver": enlace bordó, hover naranja secundario */
+.enlace-volver {
+    background: none; border: 0; padding: 0; margin-bottom: 1rem;
+    font-size: .7rem; font-weight: 700; color: var(--bordo);
+}
+.enlace-volver:hover, .enlace-volver:focus-visible { color: var(--naranja-hover); }
+
+/* Tarjeta blanca con los campos */
+.formulario-tarjeta { background: #fff; border: 1px solid #cfcfcf; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); padding: 1.25rem; }
+
+.ft-cabecera {
+    display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+    border-bottom: 1px solid #e3e3e3; padding-bottom: .9rem; margin-bottom: 1rem;
+}
+.ft-etiqueta { display: block; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--bordo); }
+.ft-tipo { display: block; font-size: 1.05rem; font-weight: 700; color: var(--gris-titulo); }
+
+.formulario-tarjeta .form-label { font-size: .7rem; font-weight: 700; color: var(--gris-titulo); margin-bottom: .2rem; }
+.formulario-tarjeta .form-control,
+.formulario-tarjeta .form-select {
+    border: 1px solid #8f8f8f; border-radius: 0; font-size: .8rem; padding: .45rem .55rem; min-height: 2.2rem;
+}
+.formulario-tarjeta .form-control:focus,
+.formulario-tarjeta .form-select:focus { border-color: var(--naranja); box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25); }
+.formulario-tarjeta .form-text { font-size: .68rem; }
+
+/* Zona del PDF */
+.zona-pdf { border: 2px dashed #9a9a9a; padding: 1rem; text-align: center; margin: 1.25rem 0; }
+.zona-pdf .zona-titulo { display: block; font-size: .72rem; font-weight: 700; color: var(--gris-titulo); }
+.zona-pdf .zona-ayuda { display: block; font-size: .62rem; margin: .15rem 0 .6rem; }
+.zona-pdf input[type="file"] { font-size: .72rem; max-width: 100%; }
+.zona-pdf input[type="file"]::file-selector-button {
+    background: none; border: 0; padding: 0 .35rem 0 0; font: inherit; font-weight: 700; color: var(--bordo); cursor: pointer;
+}
+.zona-pdf input[type="file"]::file-selector-button:hover { color: var(--naranja-hover); }
+
+.acciones-formulario { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; margin-top: 1.25rem; }
+.formulario-tarjeta .zona-pdf + .acciones-formulario { margin-top: 0; }
+
+/* Ventana "Seleccioná el tipo de convenio" */
+.modal-tipo .modal-dialog { max-width: 420px; }
+.modal-tipo .modal-content { border: 0; border-radius: 0; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
+.modal-tipo h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .25rem; color: var(--gris-titulo); }
+.modal-tipo p { font-size: .72rem; margin: 0 0 1rem; }
+.opciones-tipo { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.opcion-tipo {
+    flex: 1 1 140px; text-align: left; background: #fff; color: var(--gris-texto);
+    border: 1px solid var(--naranja); padding: .8rem .75rem; min-height: 92px;
+}
+.opcion-tipo strong { display: block; font-size: .85rem; color: var(--gris-titulo); margin-bottom: .25rem; }
+.opcion-tipo span { display: block; font-size: .72rem; }
+/* Contorno naranja principal → en hover pasa a bordó */
+.opcion-tipo:hover, .opcion-tipo:focus-visible { border-color: var(--bordo); box-shadow: inset 0 0 0 1px var(--bordo); }
+.enlace-cancelar { background: none; border: 0; padding: 0; font-size: .7rem; font-weight: 700; color: var(--bordo); }
+.enlace-cancelar:hover, .enlace-cancelar:focus-visible { color: var(--naranja-hover); }
+
+/* Botones del formulario: mismo tamaño para Cancelar y Guardar */
+.acciones-formulario .btn { font-size: .8rem; padding: .45rem 1rem; }

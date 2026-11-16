@@ -1,50 +1,44 @@
-import { exigirSesion, obtenerUsuario, obtenerToken, guardarSesion } from "../sesion.js";
-import { listarUsuarios, listarUnidades, crearUsuario, actualizarUsuario,
-         cambiarActivoUsuario } from "../api.js";
-import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver } from "../ui.js";
-import { crearElemento } from "../utils.js";
+// Página: usuarios.html (listado con búsqueda por nombre y filtro por rol)
+// Solo Administración. Alta y edición: usuario-form.html. Activar/desactivar: acá, con confirmación.
+import { exigirSesion, obtenerUsuario } from "../sesion.js";
+import { listarUsuarios, cambiarActivoUsuario } from "../api.js";
+import { dibujarLayout, mostrarAlerta, limpiarAlerta } from "../ui.js";
+import { crearElemento, parametroUrl } from "../utils.js";
 
-const NOMBRES_ROL = {
-    ADMINISTRACION: "Administración", GESTION: "Gestión",
-    ESTUDIANTE: "Estudiante", PROFESOR: "Profesor", DECANO: "Decano",
+// Rol de la API → [grupo, detalle]. Se muestra como "Consulta · Docente".
+const ROLES = {
+    ADMINISTRACION: ["Administración", "Administración"],
+    GESTION:        ["Gestión", "Gestión"],
+    ESTUDIANTE:     ["Consulta", "Estudiante"],
+    PROFESOR:       ["Consulta", "Docente"],
+    DECANO:         ["Consulta", "Decano"],
 };
 
 const alertas = document.getElementById("alertas");
-const resultados = document.getElementById("resultados");
+const formulario = document.getElementById("formularioBusqueda");
 const cuerpoTabla = document.getElementById("cuerpoTabla");
-const filtros = document.getElementById("formularioFiltros");
-const formulario = document.getElementById("formularioUsuario");
-const campo = (id) => document.getElementById(id);
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
-const modalUsuario = new bootstrap.Modal(campo("modalUsuario"));
-const modalDesactivar = new bootstrap.Modal(campo("modalDesactivar"));
-
-let usuarioActual;        // el administrador que tiene la sesión abierta
-let usuarios = [];        // lo último que devolvió la API (con el filtro de estado ya aplicado)
-let editando = null;      // usuario que se edita en el modal (null = alta)
-let aDesactivar = null;   // usuario pendiente de confirmar
+let usuarios = [];      // lo último que devolvió la API para el rol elegido
+let rolElegido = "";    // "" = todos
 let ultimaBusqueda = 0;
 
-// ---------- Listado ----------
+// Sin tildes y en minúsculas: "maria" encuentra "María"
+const normalizar = (texto) => texto.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
-async function cargar() {
-    // Igual que en convenios.js: una respuesta lenta de una búsqueda vieja no pisa a la nueva
+// ---------- Datos ----------
+
+async function cargar(conservarAlerta = false) {
+    // Si el usuario cambia de filtro rápido, una respuesta lenta vieja no pisa a la nueva
     const numero = ++ultimaBusqueda;
-    limpiarAlerta(alertas);
+    if (!conservarAlerta) limpiarAlerta(alertas);
     marcarCargando(true);
     try {
-        const filtrosApi = {};
-        if (filtros.elements.q.value.trim()) filtrosApi.q = filtros.elements.q.value.trim();
-        if (filtros.elements.rol.value) filtrosApi.rol = filtros.elements.rol.value;
-        const lista = await listarUsuarios(filtrosApi);
+        // Al servidor solo viaja el rol. El texto se filtra acá porque la API busca en
+        // nombre, apellido y mail por separado y "María González" no coincidiría con ninguno.
+        const lista = await listarUsuarios(rolElegido ? { rol: rolElegido } : {});
         if (numero !== ultimaBusqueda) return;
-
-        // El estado se filtra acá: la API no lo recibe como parámetro
-        const estado = filtros.elements.estado.value;
-        usuarios = lista
-            .filter((u) => estado === "" || (estado === "activos") === Boolean(u.activo))
-            .sort((a, b) => `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`, "es"));
+        usuarios = lista;
         pintarTabla();
     } catch (error) {
         if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
@@ -53,269 +47,149 @@ async function cargar() {
     }
 }
 
+function filtrarPorTexto(lista) {
+    const palabras = normalizar(document.getElementById("q").value).split(/\s+/).filter(Boolean);
+    if (palabras.length === 0) return lista;
+    return lista.filter((u) => {
+        const texto = normalizar(`${u.nombre} ${u.apellido} ${u.mail}`);
+        return palabras.every((p) => texto.includes(p)); // todas las palabras, en cualquier orden
+    });
+}
+
+// ---------- Tabla ----------
+
 function marcarCargando(cargando) {
-    resultados.setAttribute("aria-busy", String(cargando));
-    mostrar(campo("cargando"), cargando);
-    if (cargando) mostrar(campo("sinResultados"), false);
+    document.getElementById("resultados").setAttribute("aria-busy", String(cargando));
+    mostrar(document.getElementById("cargando"), cargando);
 }
 
 function crearFila(u) {
-    const esYo = u.id === usuarioActual.id;
-    const fila = crearElemento("tr", u.activo ? "" : "text-body-secondary");
+    const [grupo, detalle] = ROLES[u.rol] ?? [u.rol, u.rol];
+    const esUnoMismo = u.id === obtenerUsuario()?.id;
+    const fila = crearElemento("tr", u.activo ? "" : "inactivo");
 
+    const celdaNombre = crearElemento("td", "nombre", `${u.nombre} ${u.apellido}`);
+    if (esUnoMismo) celdaNombre.append(crearElemento("span", "marca-usted", "(usted)"));
+
+    const correo = crearElemento("a", "", u.mail);
+    correo.href = `mailto:${u.mail}`;
+    const celdaMail = crearElemento("td");
+    celdaMail.append(correo);
+
+    // El texto va siempre escrito: el color solo refuerza (igual que las etiquetas de convenios)
     const celdaEstado = crearElemento("td");
-    celdaEstado.append(crearElemento("span",
-        `badge ${u.activo ? "text-bg-success" : "text-bg-secondary"}`, u.activo ? "Activo" : "Inactivo"));
+    celdaEstado.append(crearElemento("span", `etiqueta${u.activo ? " ok" : ""}`, u.activo ? "Activo" : "Inactivo"));
 
-    const nombreCompleto = `${u.apellido}, ${u.nombre}`;
-    const editar = crearElemento("button", "btn btn-sm btn-outline-secondary", "Editar");
-    editar.type = "button";
-    editar.setAttribute("aria-label", `Editar a ${nombreCompleto}`);
-    editar.addEventListener("click", () => abrirFormulario(u));
+    const editar = crearElemento("a", "btn btn-borde btn-chico", "Editar");
+    editar.href = `usuario-form.html?id=${u.id}`;
+    editar.setAttribute("aria-label", `Editar a ${u.nombre} ${u.apellido}`);
 
-    const cambiar = crearElemento("button",
-        `btn btn-sm ${u.activo ? "btn-outline-danger" : "btn-outline-success"}`,
-        u.activo ? "Desactivar" : "Activar");
-    cambiar.type = "button";
-    cambiar.setAttribute("aria-label", `${u.activo ? "Desactivar" : "Activar"} a ${nombreCompleto}`);
-    if (esYo && u.activo) {
-        // La API también lo rechaza; acá se evita el error innecesario
-        cambiar.disabled = true;
-        cambiar.title = "No puede desactivarse a sí mismo";
+    const alternar = crearElemento("button", "btn btn-borde btn-chico", u.activo ? "Desactivar" : "Activar");
+    alternar.type = "button";
+    alternar.setAttribute("aria-label", `${u.activo ? "Desactivar" : "Activar"} a ${u.nombre} ${u.apellido}`);
+    if (esUnoMismo && u.activo) {
+        // Nadie puede desactivarse a sí mismo (la API también lo rechaza)
+        alternar.disabled = true;
+        alternar.title = "No puede desactivarse a sí mismo";
     } else {
-        cambiar.addEventListener("click", () => (u.activo ? pedirConfirmacion(u) : activar(u)));
+        alternar.addEventListener("click", () => pedirConfirmacion(u));
     }
 
-    const celdaAcciones = crearElemento("td", "text-end text-nowrap");
-    celdaAcciones.append(editar, " ", cambiar);
+    const acciones = crearElemento("div", "acciones-fila");
+    acciones.append(editar, alternar);
+    const celdaAcciones = crearElemento("td");
+    celdaAcciones.append(acciones);
 
-    fila.append(
-        crearElemento("td", "fw-semibold", esYo ? `${nombreCompleto} (usted)` : nombreCompleto),
-        crearElemento("td", "", u.mail),
-        crearElemento("td", "", NOMBRES_ROL[u.rol] ?? u.rol),
-        crearElemento("td", "", u.unidadNombre ?? "—"),
-        celdaEstado,
-        celdaAcciones,
-    );
+    fila.append(celdaNombre, crearElemento("td", "rol", `${grupo} · ${detalle}`), celdaMail, celdaEstado, celdaAcciones);
     return fila;
 }
 
-function pintarTabla() {
-    cuerpoTabla.replaceChildren(...usuarios.map(crearFila));
-    campo("resumenResultados").textContent =
-        `(${usuarios.length} ${usuarios.length === 1 ? "usuario" : "usuarios"})`;
-    mostrar(campo("sinResultados"), usuarios.length === 0);
-    mostrar(campo("contenedorTabla"), usuarios.length > 0);
+// ---------- Activar / desactivar ----------
+
+let usuarioPendiente = null;
+let modalActivo;
+
+function pedirConfirmacion(u) {
+    usuarioPendiente = u;
+    const nombre = `${u.nombre} ${u.apellido}`;
+    document.getElementById("tituloModalActivo").textContent = u.activo ? "Desactivar usuario" : "Activar usuario";
+    document.getElementById("textoModalActivo").textContent = u.activo
+        ? `${nombre} ya no podrá iniciar sesión, pero conservará su historial, firmas y comentarios.`
+        : `${nombre} volverá a poder iniciar sesión.`;
+    modalActivo.show();
 }
 
-// ---------- Alta y edición ----------
-
-function marcarInvalido(id, mensaje) {
-    const elemento = campo(id);
-    if (!elemento || !formulario.contains(elemento)) return false;
-    elemento.classList.add("is-invalid");
-    elemento.setAttribute("aria-invalid", "true");
-    const aviso = elemento.parentElement.querySelector(".invalid-feedback");
-    if (aviso) aviso.textContent = mensaje;
-    return true;
-}
-
-function limpiarErrores() {
-    formulario.querySelectorAll(".is-invalid").forEach((el) => {
-        el.classList.remove("is-invalid");
-        el.removeAttribute("aria-invalid");
-    });
-    limpiarAlerta(campo("errorModalUsuario"));
-}
-
-// El rol decide si la unidad se muestra y si es obligatoria
-function aplicarRol() {
-    const rol = campo("rol").value;
-    const selectUnidad = campo("unidadId");
-    mostrar(campo("grupoUnidad"), rol !== "ADMINISTRACION");
-    if (rol === "ADMINISTRACION") selectUnidad.value = ""; // Administración nunca lleva unidad
-    selectUnidad.required = rol === "GESTION";
-    mostrar(campo("marcaUnidad"), rol === "GESTION");
-}
-
-function abrirFormulario(usuario = null) {
-    editando = usuario;
-    formulario.reset();
-    limpiarErrores();
-
-    campo("tituloModalUsuario").textContent = usuario ? "Editar usuario" : "Nuevo usuario";
-    if (usuario) {
-        campo("nombre").value = usuario.nombre;
-        campo("apellido").value = usuario.apellido;
-        campo("mail").value = usuario.mail;
-        campo("rol").value = usuario.rol;
-        campo("unidadId").value = usuario.unidadId ? String(usuario.unidadId) : "";
-    }
-
-    // Cambiarse el propio rol podría dejar al sistema sin quien administre
-    const esYo = Boolean(usuario) && usuario.id === usuarioActual.id;
-    campo("rol").disabled = esYo;
-    mostrar(campo("avisoRolPropio"), esYo);
-
-    // En el alta la contraseña es obligatoria; al editar, vacía significa "no cambiarla"
-    campo("password").required = !usuario;
-    mostrar(campo("marcaPassword"), !usuario);
-    campo("ayudaPassword").textContent = usuario
-        ? "Déjela vacía para conservar la actual. Si la cambia, mínimo 8 caracteres."
-        : "Mínimo 8 caracteres.";
-
-    aplicarRol();
-    modalUsuario.show();
-}
-
-// Mensajes propios en español (los del navegador salen en el idioma del navegador)
-function validarLocal() {
-    let primero = null;
-    for (const el of formulario.elements) {
-        if (!el.id || el.disabled || el.validity.valid) continue;
-        let mensaje = "Revise este campo";
-        if (el.validity.valueMissing) mensaje = "Este campo es obligatorio";
-        else if (el.validity.typeMismatch) mensaje = "Ingrese un mail válido";
-        else if (el.validity.tooShort) mensaje = "Debe tener al menos 8 caracteres";
-        marcarInvalido(el.id, mensaje);
-        primero ??= el;
-    }
-    primero?.focus();
-    return primero === null;
-}
-
-// El 400/409 de la API trae { campo: mensaje } o solo un mensaje general
-function mostrarErrorServidor(error) {
-    let marcados = 0;
-    for (const [clave, mensaje] of Object.entries(error.detalles ?? {})) {
-        if (marcarInvalido(clave, mensaje)) marcados++;
-    }
-    if (marcados > 0) return;
-    const mensaje = error.message;
-    if (error.estado === 409 && /mail/i.test(mensaje)) marcarInvalido("mail", mensaje);
-    else if (/contraseña/i.test(mensaje)) marcarInvalido("password", mensaje);
-    else if (/unidad/i.test(mensaje)) marcarInvalido("unidadId", mensaje);
-    else mostrarAlerta(campo("errorModalUsuario"), mensaje);
-}
-
-formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    limpiarErrores();
-    if (!validarLocal()) return;
-
-    const rol = campo("rol").value;
-    const unidad = campo("unidadId").value;
-    const datos = {
-        nombre: campo("nombre").value.trim(),
-        apellido: campo("apellido").value.trim(),
-        mail: campo("mail").value.trim(),
-        rol,
-        unidadId: rol === "ADMINISTRACION" || unidad === "" ? null : Number(unidad),
-    };
-    // La contraseña no se recorta (puede llevar espacios a propósito) y, vacía, no viaja
-    if (campo("password").value !== "") datos.password = campo("password").value;
-
-    const boton = campo("botonGuardar");
-    boton.disabled = true; // evita enviar dos veces
-    try {
-        const eraAlta = editando === null;
-        const guardado = eraAlta
-            ? await crearUsuario(datos)
-            : await actualizarUsuario(editando.id, datos);
-
-        // Si el administrador se editó a sí mismo, el navbar debe mostrar los datos nuevos
-        if (!eraAlta && guardado.id === usuarioActual.id) {
-            guardarSesion(obtenerToken(), guardado);
-            usuarioActual = guardado;
-            dibujarLayout("usuarios");
-        }
-        modalUsuario.hide();
-        await cargar();
-        mostrarAlerta(alertas,
-            eraAlta ? `Usuario ${guardado.apellido}, ${guardado.nombre} creado.`
-                    : `Usuario ${guardado.apellido}, ${guardado.nombre} actualizado.`,
-            "success");
-    } catch (error) {
-        mostrarErrorServidor(error);
-    } finally {
-        boton.disabled = false;
-    }
-});
-
-campo("rol").addEventListener("change", aplicarRol);
-
-// ---------- Activar y desactivar ----------
-
-async function cambiarActivo(usuario, activo) {
-    await cambiarActivoUsuario(usuario.id, activo);
-    await cargar();
-    mostrarAlerta(alertas,
-        `Usuario ${usuario.apellido}, ${usuario.nombre} ${activo ? "activado" : "desactivado"}.`, "success");
-}
-
-async function activar(usuario) {
-    try {
-        await cambiarActivo(usuario, true);
-    } catch (error) {
-        mostrarAlerta(alertas, error.message);
-    }
-}
-
-function pedirConfirmacion(usuario) {
-    aDesactivar = usuario;
-    campo("textoModalDesactivar").textContent =
-        `¿Desactivar a ${usuario.apellido}, ${usuario.nombre}? No podrá iniciar sesión, ` +
-        "pero se conservan su historial, sus firmas y sus comentarios. Puede volver a activarlo cuando quiera.";
-    limpiarAlerta(campo("errorModalDesactivar"));
-    modalDesactivar.show();
-}
-
-campo("botonConfirmarDesactivar").addEventListener("click", async () => {
-    const boton = campo("botonConfirmarDesactivar");
+async function confirmarCambio() {
+    const u = usuarioPendiente;
+    if (!u) return;
+    const boton = document.getElementById("confirmarActivo");
     boton.disabled = true;
     try {
-        await cambiarActivo(aDesactivar, false);
-        modalDesactivar.hide();
+        await cambiarActivoUsuario(u.id, !u.activo);
+        modalActivo.hide();
+        mostrarAlerta(alertas, `${u.nombre} ${u.apellido} quedó ${u.activo ? "desactivado" : "activado"}.`, "success");
+        await cargar(true);
     } catch (error) {
-        mostrarAlerta(campo("errorModalDesactivar"), error.message);
+        modalActivo.hide();
+        mostrarAlerta(alertas, error.message);
     } finally {
         boton.disabled = false;
+        usuarioPendiente = null;
     }
-});
+}
+
+function pintarTabla() {
+    const visibles = filtrarPorTexto(usuarios)
+        .sort((a, b) => `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`, "es"));
+    cuerpoTabla.replaceChildren(...visibles.map(crearFila));
+    mostrar(document.getElementById("contenedorTabla"), visibles.length > 0);
+    mostrar(document.getElementById("sinResultados"), visibles.length === 0);
+    document.getElementById("cantidadUsuarios").textContent = visibles.length === 0 ? "" :
+        `${visibles.length} ${visibles.length === 1 ? "usuario encontrado" : "usuarios encontrados"}`;
+}
+
+// ---------- Filtro por rol ----------
+
+function dibujarMenuRoles() {
+    const opciones = [["", "Todos los roles"], ...Object.entries(ROLES).map(([clave, [, detalle]]) => [clave, detalle])];
+    document.getElementById("menuRoles").replaceChildren(...opciones.map(([clave, texto]) => {
+        const boton = crearElemento("button", `dropdown-item${clave === rolElegido ? " active" : ""}`, texto);
+        boton.type = "button";
+        boton.addEventListener("click", () => elegirRol(clave, texto));
+        const item = crearElemento("li");
+        item.append(boton);
+        return item;
+    }));
+}
+
+function elegirRol(clave, texto) {
+    rolElegido = clave;
+    document.getElementById("textoFiltroRol").textContent = clave ? `Rol: ${texto}` : "Filtrar por rol";
+    dibujarMenuRoles();
+    cargar();
+}
 
 // ---------- Inicio ----------
 
-async function cargarUnidades() {
-    try {
-        const selector = campo("unidadId");
-        for (const unidad of await listarUnidades()) selector.append(new Option(unidad.nombre, unidad.id));
-    } catch (error) {
-        mostrarAlerta(alertas, `No se pudieron cargar las unidades: ${error.message}`);
-    }
-}
-
-async function iniciar() {
-    usuarioActual = obtenerUsuario();
+function iniciar() {
     // La API solo deja entrar a Administración; acá se evita mostrar una pantalla que fallaría
-    if (usuarioActual?.rol !== "ADMINISTRACION") {
-        location.replace("inicio.html");
-        return;
-    }
+    if (obtenerUsuario()?.rol !== "ADMINISTRACION") { location.replace("convenios.html"); return; }
     dibujarLayout("usuarios");
-    activarBotonVolver(campo("botonVolver"));
+    dibujarMenuRoles();
+    modalActivo = new bootstrap.Modal(document.getElementById("modalActivo"));
+    document.getElementById("confirmarActivo").addEventListener("click", confirmarCambio);
 
-    filtros.addEventListener("submit", (evento) => {
-        evento.preventDefault();
-        cargar();
-    });
-    campo("botonLimpiar").addEventListener("click", () => {
-        filtros.reset();
-        cargar();
-    });
-    campo("botonNuevo").addEventListener("click", () => abrirFormulario());
+    // Mensaje de éxito que deja usuario-form.html al guardar
+    const resultado = parametroUrl("ok");
+    if (resultado) {
+        mostrarAlerta(alertas, resultado === "editado" ? "Usuario actualizado correctamente." : "Usuario registrado correctamente.", "success");
+        history.replaceState(null, "", location.pathname);
+    }
 
-    await cargarUnidades();
-    cargar();
+    formulario.addEventListener("submit", (evento) => { evento.preventDefault(); cargar(); });
+    // Mientras escribe, filtra lo ya cargado (sin pedir nada al servidor)
+    document.getElementById("q").addEventListener("input", pintarTabla);
+    cargar(Boolean(resultado));
 }
 
 if (exigirSesion()) iniciar();

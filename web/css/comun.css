@@ -1,0 +1,163 @@
+/* ============================================================
+   Estilos compartidos del nuevo diseño (todas las páginas)
+   Requiere las variables de :root de estilos.css (naranja, bordo, grises).
+   Orden de carga: bootstrap → estilos.css → comun.css → css de la página
+   ============================================================ */
+
+:root {
+    --fondo-pagina: #DEDCDD;
+}
+
+/* Página con encabezado arriba, contenido al medio y pie siempre abajo */
+body.pagina-sitio {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--fondo-pagina);
+    font-family: "PT Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Encabezado blanco con logo ---------- */
+.encabezado-sitio {
+    position: relative;
+    z-index: 1;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+
+    height: 95px; /* Altura fija del header */
+    padding: 0 1.5rem;
+
+    display: flex;
+    align-items: center;
+}
+
+.marca {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: .9rem;
+    color: var(--gris-titulo);
+    text-decoration: none;
+}
+
+.marca:hover,
+.marca:focus-visible {
+    color: var(--gris-titulo);
+}
+
+.marca img {
+    display: block;
+    height: 80px; /* Logo más grande */
+    width: auto;
+}
+
+.marca-texto {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    font-weight: 700;
+}
+
+.marca-sup {
+    font-size: 1.5rem;
+    font-weight: 400; /* Sin negrita */
+    color: var(--gris-texto);
+}
+
+.marca-inf {
+    font-size: 1.4rem;
+    font-weight: 700; /* Mantiene la negrita */
+    color: var(--gris-titulo);
+}
+
+/* ---------- Pie oscuro ---------- */
+.pie-sitio {
+    background-color: var(--gris-footer);
+    color: #fff;
+    font-size: .75rem;
+    padding: .9rem 1.5rem;
+}
+.pie-sitio .contenido {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.pie-sitio a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 1.5rem;
+}
+.pie-sitio a:hover,
+.pie-sitio a:focus-visible { text-decoration: underline; }
+
+/* ---------- Botón principal naranja ----------
+   Hover: el naranja principal pasa a bordó (el naranja secundario se reserva para lo que ya es bordó) */
+/* Usa las variables de Bootstrap, así hover, foco y deshabilitado salen solos.
+   Contraste: el blanco sobre este naranja da 3,1:1 (WCAG AA pide 4,5:1 en texto
+   normal). Para cumplirlo, cambiar --texto-boton a #212529 */
+.btn-convenios {
+    --texto-boton: #fff;
+    --bs-btn-color: var(--texto-boton);
+    --bs-btn-bg: var(--naranja);
+    --bs-btn-border-color: var(--naranja);
+    --bs-btn-hover-color: var(--texto-boton);
+    --bs-btn-hover-bg: var(--bordo);
+    --bs-btn-hover-border-color: var(--bordo);
+    --bs-btn-active-color: var(--texto-boton);
+    --bs-btn-active-bg: var(--bordo);
+    --bs-btn-active-border-color: var(--bordo);
+    --bs-btn-disabled-color: var(--texto-boton);
+    --bs-btn-disabled-bg: var(--naranja);
+    --bs-btn-disabled-border-color: var(--naranja);
+    --bs-btn-focus-shadow-rgb: 140, 0, 0;
+    --bs-btn-border-radius: .25rem;
+    font-weight: 700;
+}
+
+@media (max-width: 575.98px) {
+    .encabezado-sitio { padding: .5rem 1rem; }
+    .pie-sitio { padding: .75rem 1rem; }
+    .pie-sitio a { margin-left: 0; margin-right: 1rem; }
+}
+
+/* ---------- Usuario y menú de Administración ---------- */
+.encabezado-sitio .dropdown { margin-left: auto; }
+.boton-usuario {
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid #9a9a9a; border-radius: 50%;
+    background: #fff; color: var(--gris-navbar);
+}
+.boton-usuario:hover,
+.boton-usuario:focus-visible { border-color: var(--naranja-hover); color: var(--naranja-hover); }
+
+/* Franja del menú: el apartado actual se marca con color y con línea inferior (no solo color) */
+.menu-sitio { background: #fff; border-top: 1px solid #e5e5e5; box-shadow: 0 2px 6px rgba(0, 0, 0, .08); }
+.menu-sitio ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; gap: 2rem; }
+.menu-sitio a {
+    display: block; padding: .6rem .25rem;
+    font-size: .8rem; font-weight: 700;
+    color: var(--gris-navbar); text-decoration: none;
+    border-bottom: 3px solid transparent;
+}
+.menu-sitio a:hover,
+.menu-sitio a:focus-visible { color: var(--naranja-hover); }
+.menu-sitio a[aria-current="page"] { color: var(--bordo); border-bottom-color: var(--bordo); }
+/* El apartado actual ya es bordó: su hover es el naranja secundario */
+.menu-sitio a[aria-current="page"]:hover,
+.menu-sitio a[aria-current="page"]:focus-visible { color: var(--naranja-hover); border-bottom-color: var(--naranja-hover); }
+
+/* ---------- Piezas compartidas por listados y formularios ---------- */
+.cabecera-pagina { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.cabecera-pagina h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.cabecera-pagina p { margin: .25rem 0 0; font-size: .85rem; }
+
+.barra-busqueda { display: flex; gap: .5rem; }
+.barra-busqueda .form-control { flex: 1; border-radius: .25rem; font-size: .8rem; }
+.barra-busqueda .form-control:focus { border-color: var(--naranja); box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25); }
+.barra-acciones { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0; }
+
+/* Botón secundario blanco: su hover es el naranja secundario */
+.btn-borde { background: #fff; border: 1px solid #9a9a9a; color: var(--gris-titulo); font-weight: 700; font-size: .8rem; }
+.btn-borde:hover, .btn-borde:focus-visible, .btn-borde.show { background: #fff; border-color: var(--naranja-hover); color: var(--naranja-hover); }
+.btn-chico { font-size: .72rem; padding: .3rem .75rem; }

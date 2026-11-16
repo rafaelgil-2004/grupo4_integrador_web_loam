@@ -15,6 +15,7 @@ import ar.edu.unlpam.convenios.seguridad.UsuarioAutenticado;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor 
 public class AutenticacionServicio {
 

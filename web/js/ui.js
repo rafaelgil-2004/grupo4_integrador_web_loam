@@ -31,50 +31,59 @@ export function badgeEstado(estado) {
 }
 
 //inicio
-// Navbar y pie
+// Encabezado con logo y usuario, menú (solo Administración) y pie
 const ENLACES = [
-    { clave: "inicio",    texto: "Inicio",         url: "inicio.html" },
-    { clave: "convenios", texto: "Convenios",      url: "convenios.html" },
-    { clave: "nuevo",     texto: "Nuevo convenio", url: "convenio-form.html" },
-    { clave: "usuarios",  texto: "Usuarios",       url: "usuarios.html", soloAdmin: true },
+    { clave: "convenios", texto: "Convenios", url: "convenios.html" },
+    { clave: "usuarios",  texto: "Usuarios",  url: "usuarios.html" },
 ];
-const NOMBRES_ROL = { ADMINISTRACION: "Administración", GESTION: "Gestión" };
+export const NOMBRES_ROL = {
+    ADMINISTRACION: "Administrador", GESTION: "Gestión",
+    ESTUDIANTE: "Estudiante", PROFESOR: "Docente", DECANO: "Decano",
+};
+// La API devuelve el rol concreto (ESTUDIANTE, PROFESOR o DECANO), nunca "CONSULTA":
+// "consulta" es el grupo de todos los que no son Administración ni Gestión
+export const esConsulta = (rol) => rol !== "ADMINISTRACION" && rol !== "GESTION";
 
-export function dibujarLayout(paginaActiva) {
+const ICONO_USUARIO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+    stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>`;
+
+// El encabezado y el pie son iguales en todas las páginas. Los formularios piden { menu: false }
+// y son lo único que cambia: ahí no aparece la franja de navegación.
+export function dibujarLayout(paginaActiva, { menu: conMenu = true } = {}) {
     const usuario = obtenerUsuario();
     if (!usuario) { cerrarSesion(); return; }
+    document.body.classList.add("pagina-sitio");
 
-    // Las claves de ENLACES son fijas, así que acá no hay datos externos dentro del HTML
-    const enlaces = ENLACES
-        .filter((e) => !e.soloAdmin || usuario.rol === "ADMINISTRACION")
-        .map((e) => {
-            const activo = e.clave === paginaActiva;
-            return `<li class="nav-item"><a class="nav-link${activo ? " active" : ""}" href="${e.url}"${activo ? ' aria-current="page"' : ""}>${e.texto}</a></li>`;
-        }).join("");
+    // Solo Administración tiene menú: ve Convenios y Usuarios. El resto va directo a Convenios.
+    // Las claves de ENLACES son fijas, así que acá no hay datos externos dentro del HTML.
+    const menu = (!conMenu || usuario.rol !== "ADMINISTRACION") ? "" : `
+        <nav class="menu-sitio" aria-label="Navegación principal">
+            <ul>${ENLACES.map((e) => {
+                const activo = e.clave === paginaActiva;
+                return `<li><a href="${e.url}"${activo ? ' aria-current="page"' : ""}>${e.texto}</a></li>`;
+            }).join("")}</ul>
+        </nav>`;
 
     document.getElementById("navbar").innerHTML = `
-        <nav class="navbar navbar-expand-lg barra-principal" data-bs-theme="dark" aria-label="Navegación principal">
-            <div class="container">
-                <a class="navbar-brand" href="inicio.html">Convenios UNLPam</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#menuPrincipal" aria-controls="menuPrincipal"
-                        aria-expanded="false" aria-label="Mostrar u ocultar el menú">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="menuPrincipal">
-                    <ul class="navbar-nav me-auto">${enlaces}</ul>
-                    <div class="dropdown">
-                        <button class="btn btn-usuario dropdown-toggle" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false" id="nombreUsuario"></button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text small" id="rolUsuario"></span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><button class="dropdown-item" type="button" id="botonCerrarSesion">Cerrar sesión</button></li>
-                        </ul>
-                    </div>
-                </div>
+        <div class="encabezado-sitio">
+            <a class="marca" href="convenios.html">
+                <img src="../recursos/images/logoUNLPam.png" alt="Logo de la UNLPam">
+                <span class="marca-texto">
+                    <span class="marca-sup">Convenios</span>
+                    <span class="marca-inf">Universidad Nacional de La Pampa</span>
+                </span>
+            </a>
+            <div class="dropdown">
+                <button class="boton-usuario" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" aria-label="Menú de usuario">${ICONO_USUARIO}</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text fw-bold" id="nombreUsuario"></span></li>
+                    <li><span class="dropdown-item-text small" id="rolUsuario"></span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item" type="button" id="botonCerrarSesion">Cerrar sesión</button></li>
+                </ul>
             </div>
-        </nav>`;
+        </div>${menu}`;
 
     // El nombre sí viene de la API: se inserta como texto
     document.getElementById("nombreUsuario").textContent = `${usuario.nombre} ${usuario.apellido}`;
@@ -82,9 +91,12 @@ export function dibujarLayout(paginaActiva) {
         (NOMBRES_ROL[usuario.rol] ?? usuario.rol) + (usuario.unidadNombre ? ` · ${usuario.unidadNombre}` : "");
     document.getElementById("botonCerrarSesion").addEventListener("click", cerrarSesion);
 
-    document.getElementById("pie").innerHTML = `
-        <div class="container text-center small">
-            Facultad de Ingeniería · Universidad Nacional de La Pampa · Trabajo Integrador 2026
+    const pie = document.getElementById("pie");
+    pie.className = "pie-sitio";
+    pie.innerHTML = `
+        <div class="contenido">
+            <span>© 2026 Universidad Nacional de La Pampa</span>
+            <span><a href="#">Accesibilidad</a><a href="#">Privacidad</a></span>
         </div>`;
 }
 
@@ -138,10 +150,12 @@ export function dibujarPaginacion(contenedor, { number, totalPages }, alCambiar)
 
 // Vuelve a la página anterior solo si viene de este mismo sitio (document.referrer);
 // si el usuario llegó con un enlace directo, history.back() lo sacaría de la aplicación
-export function activarBotonVolver(boton, urlRespaldo = "inicio.html") {
-    boton.addEventListener("click", () => {
-        const vieneDelSitio = document.referrer && new URL(document.referrer).origin === location.origin;
-        if (vieneDelSitio) history.back();
-        else location.href = urlRespaldo;
-    });
+export function volverAtras(urlRespaldo = "convenios.html") {
+    const vieneDelSitio = document.referrer && new URL(document.referrer).origin === location.origin;
+    if (vieneDelSitio) history.back();
+    else location.href = urlRespaldo;
+}
+
+export function activarBotonVolver(boton, urlRespaldo = "convenios.html") {
+    boton.addEventListener("click", () => volverAtras(urlRespaldo));
 }

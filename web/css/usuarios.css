@@ -1,0 +1,58 @@
+/* ============================================================
+   Página de usuarios (listado)
+   Orden de carga: bootstrap → estilos.css → comun.css → usuarios.css
+   ============================================================ */
+
+.contenedor-usuarios { width: 100%; max-width: 960px; margin: 0 auto; padding: 2rem 1rem 3rem; flex: 1; }
+
+.barra-acciones .btn-borde { display: inline-flex; align-items: center; gap: .4rem; }
+
+/* Menú del filtro de rol: el elegido se marca en bordó */
+.contenedor-usuarios .dropdown-menu {
+    --bs-dropdown-font-size: .8rem;
+    --bs-dropdown-border-radius: 0;
+    --bs-dropdown-link-color: var(--gris-titulo);
+    --bs-dropdown-link-hover-bg: #f2f2f2;
+    --bs-dropdown-link-hover-color: var(--naranja-hover);
+    --bs-dropdown-link-active-bg: var(--bordo);
+    --bs-dropdown-link-active-color: #fff;
+}
+
+/* Tabla */
+.tabla-usuarios { background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); }
+.tabla-usuarios table { width: 100%; border-collapse: collapse; }
+.tabla-usuarios thead th {
+    background: #f2f2f2; border-bottom: 1px solid #dcdcdc;
+    padding: .55rem .75rem; text-align: left;
+    font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--gris-texto);
+}
+.tabla-usuarios tbody td { padding: .8rem .75rem; border-bottom: 1px solid #e6e6e6; font-size: .78rem; vertical-align: middle; }
+.tabla-usuarios tbody tr:last-child td { border-bottom: 0; }
+.tabla-usuarios .nombre { font-weight: 700; color: var(--gris-titulo); }
+.tabla-usuarios .rol { font-size: .72rem; }
+/* El mail es un enlace (bordó): su hover es el naranja secundario */
+.tabla-usuarios td a { color: var(--bordo); text-decoration: none; }
+.tabla-usuarios td a:hover, .tabla-usuarios td a:focus-visible { color: var(--naranja-hover); text-decoration: underline; }
+
+
+/* Misma tabla, con el aspecto del resto de la página (tarjeta blanca, etiquetas de estado, botones chicos) */
+.tabla-usuarios tbody tr:hover td { background: #fafafa; }
+.tabla-usuarios tr.inactivo td { color: #8a8a8a; }
+.tabla-usuarios tr.inactivo .nombre { color: #8a8a8a; }
+.tabla-usuarios .marca-usted { margin-left: .35rem; font-weight: 400; font-size: .7rem; color: var(--gris-texto); }
+.tabla-usuarios .acciones-fila { display: flex; gap: .4rem; justify-content: flex-end; flex-wrap: wrap; white-space: nowrap; }
+.tabla-usuarios .acciones-fila .btn { font-size: .68rem; padding: .2rem .6rem; }
+
+/* Ventana de confirmación */
+.modal-confirmar .modal-dialog { max-width: 420px; }
+.modal-confirmar .modal-content { border: 0; border-radius: 0; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
+.modal-confirmar h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .25rem; color: var(--gris-titulo); }
+.modal-confirmar p { font-size: .8rem; margin: 0 0 1rem; }
+.acciones-modal { display: flex; justify-content: flex-end; gap: .5rem; }
+
+/* Línea con la cantidad de resultados (igual que en convenios) */
+.linea-resultados { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .75rem; padding-bottom: .5rem; margin-bottom: 1rem; border-bottom: 1px solid #b9b9b9; }
+
+/* Etiquetas de estado (mismas que en convenios) */
+.etiqueta { display: inline-block; border: 1px solid #c9c9c9; background: #fff; font-size: .68rem; padding: .2rem .5rem; color: var(--gris-titulo); }
+.etiqueta.ok { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }

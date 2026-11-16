@@ -1,0 +1,87 @@
+/* ============================================================
+   Página de inicio de sesión
+   ============================================================ */
+
+.contenedor-acceso {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.tarjeta-acceso {
+    width: 100%;
+    max-width: 420px;
+    background-color: #fff;
+    border-radius: .25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
+    padding: 2rem;
+}
+
+.tarjeta-acceso h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: .5rem;
+}
+.tarjeta-acceso .descripcion {
+    font-size: .85rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Campos */
+.tarjeta-acceso .form-label {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--gris-titulo);
+    margin-bottom: .25rem;
+}
+.tarjeta-acceso .form-control {
+    border: 1px solid #b9b9b9;
+    border-radius: .25rem;
+    padding: .6rem .75rem;
+    font-size: .9rem;
+}
+.tarjeta-acceso .form-control:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25);
+}
+/* Bootstrap pinta de verde los campos válidos al validar; acá se mantienen neutros */
+.was-validated .tarjeta-acceso .form-control:valid {
+    border-color: #b9b9b9;
+    background-image: none;
+    padding-right: .75rem;
+}
+.was-validated .tarjeta-acceso .form-control:valid:focus {
+    border-color: var(--naranja);
+}
+
+/* "Recordar usuario" y "¿Olvidaste tu contraseña?" */
+.opciones-acceso {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    font-size: .8rem;
+    margin: .25rem 0 1.25rem;
+}
+.opciones-acceso .form-check { margin-bottom: 0; }
+.opciones-acceso .form-check-input:checked {
+    background-color: var(--naranja);
+    border-color: var(--naranja);
+}
+.opciones-acceso .form-check-input:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25);
+}
+.opciones-acceso a,
+.ayuda-acceso a {
+    color: var(--bordo);
+    font-weight: 700;
+}
+
+.ayuda-acceso {
+    font-size: .8rem;
+    margin: 1.25rem 0 0;
+}

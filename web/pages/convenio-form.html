@@ -3,190 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nuevo convenio | Convenios UNLPam</title>
+    <title>Crear convenio | Convenios UNLPam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../recursos/bootstrap/bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/estilos.css">
+    <link rel="stylesheet" href="../css/comun.css">
+    <link rel="stylesheet" href="../css/formularios.css">
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="pagina-sitio">
     <header id="navbar"></header>
 
-    <main class="container py-4 flex-grow-1">
-        <button type="button" class="btn btn-link ps-0 mb-2" id="botonVolver">← Volver</button>
-        <h1 class="h3 titulo mb-1" id="tituloPagina">Nuevo convenio</h1>
-        <p class="text-body-secondary" id="subtituloPagina">
-            Puede guardarlo como borrador con datos incompletos. Para aceptarlo se necesitan todos los datos, el PDF y al menos un firmante.
-        </p>
+    <main class="contenedor-formulario">
+        <button type="button" class="enlace-volver" id="botonVolver">← Volver</button>
+        <h1 class="titulo" id="tituloPagina">Crear convenio</h1>
+        <p class="subtitulo" id="subtituloPagina">Completá los datos institucionales y adjuntá el documento correspondiente.</p>
+
         <div id="alertas" aria-live="polite"></div>
 
-        <div id="cargando" class="text-center py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
-        </div>
+        <!-- Sin ?id= es la pantalla de alta (maqueta). Con ?id= edita el convenio con sus datos cargados. -->
+        <form id="formularioConvenio" class="formulario-tarjeta" hidden novalidate>
+            <div class="ft-cabecera">
+                <div>
+                    <span class="ft-etiqueta">Tipo de convenio</span>
+                    <span class="ft-tipo" id="tipoElegido"></span>
+                </div>
+                <button type="button" class="btn btn-borde btn-chico" id="botonCambiarTipo">Cambiar tipo</button>
+            </div>
 
-        <form id="formulario" class="d-none" novalidate>
-            <!-- Identificación -->
-            <fieldset class="mb-4">
-                <legend class="h5 titulo">Identificación</legend>
+            <!-- ========== Convenio marco ========== -->
+            <section id="camposMarco" aria-label="Datos del convenio marco" hidden>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="tipo" class="form-label">Tipo <span class="text-danger" aria-hidden="true">*</span></label>
-                        <select id="tipo" class="form-select" required>
-                            <option value="">Seleccione...</option>
-                            <option value="MARCO">Marco</option>
-                            <option value="ESPECIFICO">Específico</option>
-                            <option value="ADENDA">Adenda</option>
-                        </select>
-                        <div class="invalid-feedback" id="tipoError"></div>
+                        <label for="m-nombre" class="form-label">Nombre del convenio</label>
+                        <input type="text" class="form-control" id="m-nombre">
                     </div>
                     <div class="col-md-6">
-                        <label for="subtipo" class="form-label">Subtipo <span class="text-danger" aria-hidden="true">*</span></label>
-                        <select id="subtipo" class="form-select" required>
-                            <option value="">Seleccione...</option>
-                            <option value="COLABORACION">Colaboración</option>
-                            <option value="PASANTIA">Pasantía</option>
-                            <option value="PRACTICA">Práctica profesional supervisada</option>
-                            <option value="INTERCAMBIO">Intercambio</option>
-                        </select>
-                        <div class="invalid-feedback" id="subtipoError"></div>
-                    </div>
-                    <div class="col-12 d-none" id="avisoTipoFijo">
-                        <div class="form-text">El tipo y el subtipo no se pueden cambiar una vez creado el convenio.</div>
-                    </div>
-                    <div class="col-12">
-                        <label for="titulo" class="form-label">Título <span class="text-danger" aria-hidden="true">*</span></label>
-                        <input type="text" id="titulo" class="form-control" maxlength="200" required>
-                        <div class="invalid-feedback" id="tituloError"></div>
+                        <label for="m-codigo" class="form-label">Código</label>
+                        <input type="text" class="form-control" id="m-codigo">
                     </div>
                     <div class="col-md-6">
-                        <label for="unidadId" class="form-label">Unidad responsable <span class="text-danger" aria-hidden="true">*</span></label>
-                        <select id="unidadId" class="form-select" required></select>
-                        <div class="form-text d-none" id="avisoUnidad">Es su unidad y no se puede cambiar.</div>
-                        <div class="invalid-feedback" id="unidadIdError"></div>
+                        <label for="m-inicio" class="form-label">Fecha de inicio</label>
+                        <input type="date" class="form-control" id="m-inicio">
                     </div>
-                    <div class="col-md-6 d-none" id="grupoPadre">
-                        <label for="convenioPadreId" class="form-label">Convenio padre <span class="text-danger" aria-hidden="true">*</span></label>
-                        <select id="convenioPadreId" class="form-select"></select>
-                        <div class="form-text" id="ayudaPadre"></div>
-                        <div class="invalid-feedback" id="convenioPadreIdError"></div>
+                    <div class="col-md-6">
+                        <label for="m-vencimiento" class="form-label">Fecha de vencimiento</label>
+                        <input type="date" class="form-control" id="m-vencimiento">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="m-partes" class="form-label">Partes</label>
+                        <input type="text" class="form-control" id="m-partes">
                     </div>
                 </div>
-            </fieldset>
 
-            <!-- Contenido y referencias -->
-            <fieldset class="mb-4">
-                <legend class="h5 titulo">Contenido y referencias</legend>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label for="organizacion" class="form-label">Organización externa</label>
-                        <input type="text" id="organizacion" class="form-control" maxlength="150">
-                        <div class="invalid-feedback" id="organizacionError"></div>
-                    </div>
-                    <div class="col-12">
-                        <label for="objeto" class="form-label">Objeto</label>
-                        <textarea id="objeto" class="form-control" rows="3" maxlength="1000"></textarea>
-                        <div class="invalid-feedback" id="objetoError"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="resolucion" class="form-label">Resolución</label>
-                        <input type="text" id="resolucion" class="form-control" maxlength="100">
-                        <div class="invalid-feedback" id="resolucionError"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="expediente" class="form-label">Expediente</label>
-                        <input type="text" id="expediente" class="form-control" maxlength="100">
-                        <div class="invalid-feedback" id="expedienteError"></div>
-                    </div>
+                <div class="zona-pdf">
+                    <span class="zona-titulo">Subir PDF del convenio</span>
+                    <span class="zona-ayuda">Obligatorio si el documento no permite extraer todos los datos</span>
+                    <input type="file" id="m-pdf" accept="application/pdf,.pdf" aria-label="Subir PDF del convenio">
                 </div>
-            </fieldset>
+            </section>
 
-            <!-- Fechas -->
-            <fieldset class="mb-4">
-                <legend class="h5 titulo">Fechas</legend>
+            <!-- ========== Convenio específico ========== -->
+            <section id="camposEspecifico" aria-label="Datos del convenio específico" hidden>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-                        <input type="date" id="fechaInicio" class="form-control">
-                        <div class="invalid-feedback" id="fechaInicioError"></div>
+                        <label for="e-nombre" class="form-label">Nombre del convenio</label>
+                        <input type="text" class="form-control" id="e-nombre">
                     </div>
                     <div class="col-md-6">
-                        <label for="fechaVencimiento" class="form-label">Vencimiento</label>
-                        <input type="date" id="fechaVencimiento" class="form-control" aria-describedby="ayudaVencimiento">
-                        <div class="form-text" id="ayudaVencimiento">Déjelo vacío si el convenio no tiene vencimiento.</div>
-                        <div class="invalid-feedback" id="fechaVencimientoError"></div>
+                        <label for="e-codigo" class="form-label">Código</label>
+                        <input type="text" class="form-control" id="e-codigo">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="e-inicio" class="form-label">Fecha de inicio</label>
+                        <input type="date" class="form-control" id="e-inicio">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="e-vencimiento" class="form-label">Fecha de vencimiento</label>
+                        <input type="date" class="form-control" id="e-vencimiento">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="e-partes" class="form-label">Partes</label>
+                        <input type="text" class="form-control" id="e-partes">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="e-marco" class="form-label">Marco del que extiende</label>
+                        <input type="text" class="form-control" id="e-marco">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="e-firmantes" class="form-label">Firmantes requeridos</label>
+                        <input type="text" class="form-control" id="e-firmantes">
                     </div>
                 </div>
-            </fieldset>
 
-            <!-- Firmantes -->
-            <fieldset class="mb-4">
-                <legend class="h5 titulo">Firmantes</legend>
-                <p class="form-text mt-0">
-                    Personas con usuario que deben firmar. La organización externa firma a través de Gestión.
-                </p>
-                <label for="filtroFirmantes" class="form-label">Buscar firmante</label>
-                <input type="search" id="filtroFirmantes" class="form-control mb-2" placeholder="Nombre, apellido o mail"
-                       autocomplete="off">
-                <div id="listaFirmantes" class="border rounded p-2 overflow-auto" style="max-height: 14rem;" tabindex="-1"></div>
-                <div class="invalid-feedback" id="listaFirmantesError"></div>
-                <p class="form-text mb-0" id="resumenFirmantes" aria-live="polite"></p>
-            </fieldset>
-
-            <!-- Documento -->
-            <fieldset class="mb-4">
-                <legend class="h5 titulo">Documento</legend>
-                <div id="documentosExistentes" class="mb-3 d-none"></div>
-                <label for="archivoPdf" class="form-label">Archivo PDF (hasta 20 MB)</label>
-                <input type="file" id="archivoPdf" class="form-control" accept="application/pdf,.pdf">
-                <div class="invalid-feedback" id="archivoPdfError"></div>
-            </fieldset>
-
-            <!-- Motivo: solo al modificar un convenio ya aceptado -->
-            <fieldset class="mb-4 d-none" id="grupoMotivo">
-                <legend class="h5 titulo">Motivo de la modificación</legend>
-                <div class="alert alert-warning">
-                    Este convenio ya está aceptado: al guardar los cambios se anulan las firmas registradas y los firmantes deberán firmar de nuevo.
+                <div class="zona-pdf">
+                    <span class="zona-titulo">Subir PDF del convenio</span>
+                    <span class="zona-ayuda">Obligatorio si el documento no permite extraer todos los datos</span>
+                    <input type="file" id="e-pdf" accept="application/pdf,.pdf" aria-label="Subir PDF del convenio">
                 </div>
-                <label for="motivo" class="form-label">Motivo <span class="text-danger" aria-hidden="true">*</span></label>
-                <input type="text" id="motivo" class="form-control" maxlength="255">
-                <div class="invalid-feedback" id="motivoError"></div>
-            </fieldset>
+            </section>
 
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                <button type="submit" class="btn btn-principal" id="botonGuardar">Guardar borrador</button>
-                <button type="button" class="btn btn-outline-secondary" id="botonGuardarAceptar">Guardar y aceptar</button>
-                <button type="button" class="btn btn-link" id="botonCancelar">Cancelar</button>
+            <!-- Solo al editar un convenio Aceptado: la API exige el motivo -->
+            <div id="campoMotivo" class="mb-3" hidden>
+                <label for="motivo" class="form-label">Motivo de la modificación</label>
+                <textarea class="form-control" id="motivo" rows="2" maxlength="255" aria-describedby="ayudaMotivo"></textarea>
+                <div class="form-text" id="ayudaMotivo">Obligatorio. Al modificar un convenio Aceptado, las firmas ya registradas se anulan.</div>
+            </div>
+
+            <div class="acciones-formulario">
+                <button type="button" class="btn btn-borde" id="botonCancelar">Cancelar</button>
+                <button type="submit" class="btn btn-convenios" id="botonGuardar">Guardar convenio</button>
             </div>
         </form>
     </main>
 
-    <!-- Confirmación para eliminar un documento -->
-    <div class="modal fade" id="modalEliminarDocumento" tabindex="-1" aria-labelledby="tituloModalEliminar" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Se abre al entrar y desde "Cambiar tipo" -->
+    <div class="modal fade modal-tipo" id="modalTipo" tabindex="-1" aria-labelledby="tituloModalTipo" aria-hidden="true"
+         data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title h5" id="tituloModalEliminar">Eliminar documento</h2>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <h2 id="tituloModalTipo">Seleccioná el tipo de convenio</h2>
+                <p>Esta elección define los datos que deberás completar.</p>
+                <div class="opciones-tipo">
+                    <button type="button" class="opcion-tipo" data-tipo="MARCO">
+                        <strong>Convenio marco</strong>
+                        <span>Acuerdo general de colaboración.</span>
+                    </button>
+                    <button type="button" class="opcion-tipo" data-tipo="ESPECIFICO">
+                        <strong>Convenio específico</strong>
+                        <span>Proyecto asociado a un marco.</span>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <p id="textoModalEliminar"></p>
-                    <div id="grupoMotivoEliminar" class="d-none">
-                        <div class="alert alert-warning">
-                            El convenio está aceptado: al eliminar el documento se anulan las firmas registradas y los firmantes deberán firmar de nuevo.
-                        </div>
-                        <label for="motivoEliminar" class="form-label">Motivo <span class="text-danger" aria-hidden="true">*</span></label>
-                        <input type="text" id="motivoEliminar" class="form-control" maxlength="100">
-                        <div class="invalid-feedback" id="motivoEliminarError"></div>
-                    </div>
-                    <div id="errorModalEliminar" aria-live="polite"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="botonConfirmarEliminar">Eliminar</button>
-                </div>
+                <div><button type="button" class="enlace-cancelar" id="cancelarModal">Cancelar</button></div>
             </div>
         </div>
     </div>
 
-    <footer id="pie" class="pie"></footer>
+    <footer id="pie"></footer>
 
     <script src="../recursos/bootstrap/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/paginas/convenioForm.js"></script>

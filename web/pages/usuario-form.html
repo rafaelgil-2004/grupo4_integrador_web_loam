@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar usuario | Convenios UNLPam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../recursos/bootstrap/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/estilos.css">
+    <link rel="stylesheet" href="../css/comun.css">
+    <link rel="stylesheet" href="../css/formularios.css">
+</head>
+<body class="pagina-sitio">
+    <header id="navbar"></header>
+
+    <main class="contenedor-formulario">
+        <button type="button" class="enlace-volver" id="botonVolver">← Volver</button>
+        <h1 class="titulo" id="tituloPagina">Registrar usuario</h1>
+        <p class="subtitulo" id="subtituloPagina">Completá los datos de la persona y asignale su nivel de acceso.</p>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <!-- Sirve para registrar y para editar (usuario-form.html?id=...) -->
+        <form id="formularioUsuario" class="formulario-tarjeta" novalidate autocomplete="off">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" maxlength="60">
+                </div>
+                <div class="col-md-6">
+                    <label for="apellido" class="form-label">Apellido</label>
+                    <input type="text" class="form-control" id="apellido" maxlength="60">
+                </div>
+                <div class="col-12">
+                    <label for="mail" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="mail" maxlength="120">
+                </div>
+                <div class="col-md-6">
+                    <label for="rol" class="form-label">Rol</label>
+                    <select class="form-select" id="rol">
+                        <option value="">Seleccionar</option>
+                        <option value="ADMINISTRACION">Administración</option>
+                        <option value="GESTION">Gestión</option>
+                        <option value="ESTUDIANTE">Consulta · Estudiante</option>
+                        <option value="PROFESOR">Consulta · Docente</option>
+                        <option value="DECANO">Consulta · Decano</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="unidadId" class="form-label">Unidad</label>
+                    <select class="form-select" id="unidadId" aria-describedby="ayudaUnidad">
+                        <option value="">Seleccionar</option>
+                    </select>
+                    <div class="form-text" id="ayudaUnidad">Obligatoria solo para el rol Gestión.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="password" class="form-label" id="etiquetaPassword">Contraseña inicial</label>
+                    <input type="password" class="form-control" id="password" minlength="8" maxlength="72"
+                           autocomplete="new-password" aria-describedby="ayudaPassword">
+                    <div class="form-text" id="ayudaPassword">Mínimo 8 caracteres.</div>
+                </div>
+            </div>
+
+            <div class="acciones-formulario">
+                <button type="button" class="btn btn-borde" id="botonCancelar">Cancelar</button>
+                <button type="submit" class="btn btn-convenios" id="botonGuardar">Registrar usuario</button>
+            </div>
+        </form>
+    </main>
+
+    <footer id="pie"></footer>
+
+    <script src="../recursos/bootstrap/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/paginas/usuarioForm.js"></script>
+</body>
+</html>

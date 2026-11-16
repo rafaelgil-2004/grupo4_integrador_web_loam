@@ -1,0 +1,127 @@
+/* ============================================================
+   Ficha del convenio (convenio.html): datos, documentos, observaciones e historial
+   Orden de carga: bootstrap → estilos.css → comun.css → ficha.css
+   Deja la ficha con el mismo aspecto que el resto del sitio.
+   ============================================================ */
+
+main.container {
+    max-width: 960px;
+}
+
+/* Pestañas: la activa se marca en bordó, con línea inferior (no solo color) */
+.nav-tabs {
+    border-bottom: 0;
+    gap: .25rem;
+}
+
+.nav-tabs .nav-link {
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--gris-navbar);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus-visible {
+    color: var(--naranja-hover);
+}
+
+.nav-tabs .nav-link.active {
+    background: #fff;
+    color: var(--bordo);
+    border-bottom-color: var(--bordo);
+}
+
+/* Panel blanco con sombra, como las tarjetas de convenios */
+.tab-content {
+    background: #fff;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+
+.tab-content .titulo.h5 {
+    font-size: .9rem;
+}
+
+/* Tablas: fondo blanco y encabezado igual al del listado de usuarios */
+.tab-content .table {
+    --bs-table-bg: #fff;
+    --bs-table-color: var(--gris-texto);
+    font-size: .78rem;
+}
+
+.tab-content .table thead th {
+    background: #f2f2f2;
+    border-bottom: 1px solid #dcdcdc;
+    font-size: .62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--gris-texto);
+}
+
+.tab-content .table> :not(caption)>*>* {
+    border-bottom-color: #e6e6e6;
+}
+
+/* Listas (documentos, observaciones) */
+.list-group {
+    border-radius: 0;
+}
+
+.list-group-item {
+    background: #fff;
+    border-color: #e6e6e6;
+    border-radius: 0 !important;
+    font-size: .78rem;
+}
+
+/* Etiquetas y botones sin redondeo, con los colores del sitio */
+.badge {
+    border-radius: 0;
+    font-weight: 700;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--gris-titulo);
+    --bs-btn-border-color: #9a9a9a;
+    --bs-btn-hover-color: var(--naranja-hover);
+    --bs-btn-hover-bg: #fff;
+    --bs-btn-hover-border-color: var(--naranja-hover);
+    --bs-btn-active-color: var(--naranja-hover);
+    --bs-btn-active-bg: #fff;
+    --bs-btn-active-border-color: var(--naranja-hover);
+    font-weight: 700;
+}
+
+.btn-sm {
+    font-size: .68rem;
+    padding: .2rem .6rem;
+}
+
+/* Campos como en los formularios */
+.tab-content .form-control,
+.tab-content .form-select {
+    border: 1px solid #8f8f8f;
+    border-radius: 0;
+    font-size: .8rem;
+}
+
+.tab-content .form-control:focus {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25);
+}
+
+.visor-pdf {
+    border-radius: 0;
+}
+
+.tab-content .card,
+.tab-content .rounded,
+.tab-content .border {
+    border-radius: 0 !important;
+}
