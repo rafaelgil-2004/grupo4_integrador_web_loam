@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Share, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, Share, TextInput, View, Pressable } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
 import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion } from "../servicios/api";
 import { formatearFecha, formatearFechaHora } from "../utilidades";
 import { radio } from "../tema";
+import { useAutenticacion } from "../contexto/ContextoAutenticacion";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import Insignia from "../componentes/atomos/Insignia";
@@ -25,7 +26,7 @@ function Dato({ etiqueta, valor }) {
     return <Texto><Texto color="textoSuave">{etiqueta}: </Texto>{valor}</Texto>;
 }
 
-export default function PantallaDetalleConvenio({ route }) {
+export default function PantallaDetalleConvenio({ route, navigation }) {
     const { id } = route.params;
     const { colores, escala } = useTema();
     const { estaConectado } = useConexion();
@@ -35,6 +36,10 @@ export default function PantallaDetalleConvenio({ route }) {
     const [comentario, setComentario] = useState("");
     const [error, setError] = useState(null);
     const [enviando, setEnviando] = useState(false);
+    const { usuario } = useAutenticacion();
+    const puedeFirmar = !!convenio && convenio.estado === "ACEPTADO" &&
+    convenio.listaImplicados?.some((f) => f.usuarioId === usuario.id && !f.firmado);
+
 
     const cargar = useCallback(async () => {
         if (!estaConectado) return;
@@ -114,13 +119,14 @@ export default function PantallaDetalleConvenio({ route }) {
 
             <Seccion titulo="Documentos">
                 {documentos.length ? documentos.map((d) => (
-                    <View key={d.id} style={{ paddingVertical: 6 }}>
-                        <Texto style={{ fontWeight: "600" }}>{d.nombre}</Texto>
+                    <Pressable key={d.id} accessibilityRole="button" accessibilityLabel={`Abrir ${d.nombre}`}
+                        onPress={() => navigation.navigate("Visor", { documento: d, convenioId: id, codigo: convenio.codigo, puedeFirmar })}
+                        style={({ pressed }) => ({ paddingVertical: 8, opacity: pressed ? 0.6 : 1 })}>
+                        <Texto style={{ fontWeight: "600", color: colores.acento }}>{d.nombre}</Texto>
                         <Texto variante="pequenio" color="textoSuave">
                             Subido por {d.subidoPorNombre} · {formatearFechaHora(d.fechaCarga)}
                         </Texto>
-                        {/* El onPress que abre el visor PDF se agrega en el próximo paso */}
-                    </View>
+                    </Pressable>
                 )) : <Texto color="textoSuave">Sin documentos.</Texto>}
             </Seccion>
 

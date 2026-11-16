@@ -22,3 +22,14 @@ export function formatearFechaHora(valor) {
 }
 
 export const validarMail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim());
+
+// Convierte los trazos [[{x,y}...]...] en un SVG (un <path> con un "M ... L ..." por trazo)
+export function trazosASvg(trazos, ancho, alto) {
+    const camino = trazos
+        .filter((t) => t.length >= 2)
+        .map((t) => "M" + t.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("L"))
+        .join(" ");
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${ancho}" height="${alto}" viewBox="0 0 ${ancho} ${alto}">` +
+        `<rect width="100%" height="100%" fill="white"/>` +
+        `<path d="${camino}" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+}

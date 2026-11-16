@@ -1,4 +1,5 @@
 import { obtenerApiUrl } from "../configuracion";
+import * as FileSystem from "expo-file-system/legacy";
 
 export class ErrorApi extends Error {
     constructor(mensaje, { estado, codigo, detalles, sinConexion = false } = {}) {
@@ -13,6 +14,7 @@ export class ErrorApi extends Error {
 // El token vive en memoria: ContextoAutenticacion lo fija al iniciar o restaurar la sesión
 let tokenActual = null;
 let alVencerSesion = null;
+export const obtenerToken = () => tokenActual;
 export const fijarToken = (token) => { tokenActual = token; };
 export const registrarAlVencerSesion = (funcion) => { alVencerSesion = funcion; };
 
@@ -22,6 +24,7 @@ export const registrarAlVencerSesion = (funcion) => { alVencerSesion = funcion; 
  * cuerpo: objeto → JSON; FormData → multipart (archivos)
  */
 export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false, tiempoLimiteMs = 15000 } = {}) {
+    
     const cabeceras = { Accept: "application/json" };
     if (!publica && tokenActual) cabeceras.Authorization = `Bearer ${tokenActual}`;
 
@@ -77,3 +80,23 @@ export const obtenerDocumentos = (id) => pedir(`/convenios/${id}/documentos`);
 export const obtenerObservaciones = (id) => pedir(`/convenios/${id}/observaciones`);
 export const agregarObservacion = (id, texto) =>
     pedir(`/convenios/${id}/observaciones`, { metodo: "POST", cuerpo: { texto } });
+
+export async function firmar(convenioId, { latitud, longitud, uriImagen }) {
+    let r;
+    try {
+        r = await FileSystem.uploadAsync(`${obtenerApiUrl()}/convenios/${convenioId}/firmas`, uriImagen, {
+            httpMethod: "POST",
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            fieldName: "imagen",
+            mimeType: "image/svg+xml",
+            parameters: { latitud: String(latitud), longitud: String(longitud) },
+            headers: { Authorization: `Bearer ${tokenActual}`, Accept: "application/json" },
+        });
+    } catch {
+        throw new Error("No se pudo conectar al servidor.");
+    }
+    let cuerpo = null;
+    try { cuerpo = JSON.parse(r.body); } catch {}
+    if (r.status < 200 || r.status >= 300) throw new Error(cuerpo?.mensaje ?? `Error ${r.status} al registrar la firma.`);
+    return cuerpo;
+}

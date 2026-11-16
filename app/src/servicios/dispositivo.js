@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
+import * as Location from "expo-location";
 
 // ---------- Biometría ----------
 export async function hayBiometria() {
@@ -48,4 +49,12 @@ export async function mostrarNotificacion(titulo, cuerpo) {
     } catch {
         return false;
     }
+}
+
+// Una sola lectura al firmar (no hay seguimiento continuo)
+export async function obtenerUbicacion() {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") throw new Error("Se necesita el permiso de ubicación para firmar.");
+    const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    return { latitud: p.coords.latitude, longitud: p.coords.longitude };
 }

@@ -9,6 +9,8 @@ import PantallaDetalleConvenio from "../pantallas/PantallaDetalleConvenio";
 import PantallaEnConstruccion from "../pantallas/PantallaEnConstruccion";
 import PantallaProvisoria from "../pantallas/PantallaProvisoria"; // hace de Perfil por ahora
 import PantallaPendientes from "../pantallas/PantallaPendientes";
+import PantallaVisorPdf from "../pantallas/PantallaVisorPdf";
+import PantallaFirma from "../pantallas/PantallaFirma";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -45,6 +47,8 @@ export default function NavegadorPrincipal() {
             <Stack.Navigator>
                 <Stack.Screen name="Pestanias" component={Pestanias} options={{ headerShown: false }} />
                 <Stack.Screen name="Detalle" component={PantallaDetalleConvenio} options={{ title: "Convenio" }} />
+                <Stack.Screen name="Visor" component={PantallaVisorPdf} options={{ title: "Documento" }} />
+                <Stack.Screen name="Firma" component={PantallaFirma} options={{ title: "Firmar" }} />
             </Stack.Navigator>
         </NavigationContainer>
     );
