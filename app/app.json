@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Convenios UNLPam",
+    "slug": "convenios-unlpam",
+    "userInterfaceStyle": "automatic",
+    "android": {
+        "package": "ar.edu.unlpam.convenios"
+    },
+    "plugins": [
+        "expo-secure-store",
+        ["expo-local-authentication", { "faceIDPermission": "Permite usar el reconocimiento facial para confirmar tu identidad." }],
+        ["expo-location", { "locationWhenInUsePermission": "La ubicación se registra una sola vez, al firmar un convenio." }],
+        ["expo-image-picker", { "photosPermission": "Para elegir tu foto de perfil.", "cameraPermission": "Para sacarte la foto de perfil." }],
+        "expo-notifications",
+        ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+    ]
+  }
+}
