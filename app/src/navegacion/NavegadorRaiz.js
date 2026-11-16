@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useAutenticacion } from "../contexto/ContextoAutenticacion";
 import { useTema } from "../contexto/ContextoTema";
 import PantallaLogin from "../pantallas/PantallaLogin";
-import PantallaProvisoria from "../pantallas/PantallaProvisoria";
+import NavegadorPrincipal from "./NavegadorPrincipal";
 
 // Decide qué se ve: cargando la sesión guardada → login → app.
 // Cuando haya navegación real, PantallaProvisoria se reemplaza por NavegadorPrincipal.
@@ -15,7 +15,7 @@ export default function NavegadorRaiz() {
             <StatusBar style={modoOscuro ? "light" : "dark"} />
             {cargando
                 ? <ActivityIndicator style={{ flex: 1 }} color={colores.primario} />
-                : usuario ? <PantallaProvisoria /> : <PantallaLogin />}
+                : usuario ? <NavegadorPrincipal /> : <PantallaLogin />}
         </View>
     );
 }

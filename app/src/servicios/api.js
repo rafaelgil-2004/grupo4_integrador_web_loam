@@ -69,3 +69,6 @@ export const login = (mail, password) =>
     pedir("/auth/login", { metodo: "POST", cuerpo: { mail, password }, publica: true });
 
 export const obtenerDatosUsuario = () => pedir("/auth/datosUsuario");
+export const obtenerResumen = () => pedir("/dashboard/resumen");
+export const obtenerMovimientos = (limite = 10) => pedir(`/dashboard/movimientos?limite=${limite}`);
+export const obtenerPendientes = (limite = 10) => pedir(`/firmas/pendientes?limite=${limite}`);

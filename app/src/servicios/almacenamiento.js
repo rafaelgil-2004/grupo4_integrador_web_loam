@@ -49,3 +49,10 @@ export async function guardarPreferencias(parcial) {
     const actuales = await leerPreferencias();
     await AsyncStorage.setItem(CLAVE.preferencias, JSON.stringify({ ...actuales, ...parcial }));
 }
+// Caché para el modo sin conexión (por ahora solo los pendientes de firma)
+export const guardarCache = (clave, datos) =>
+    AsyncStorage.setItem(`convenios.cache.${clave}`, JSON.stringify(datos));
+
+export async function leerCache(clave) {
+    try { return JSON.parse(await AsyncStorage.getItem(`convenios.cache.${clave}`)); } catch { return null; }
+}

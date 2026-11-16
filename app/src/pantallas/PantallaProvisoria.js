@@ -1,5 +1,4 @@
 import { Switch, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import { useTema } from "../contexto/ContextoTema";
@@ -10,7 +9,7 @@ export default function PantallaProvisoria() {
     const { usuario, cerrarSesion } = useAutenticacion();
     const { colores, modoOscuro, tamanioLetra, cambiarModoOscuro, cambiarTamanioLetra } = useTema();
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colores.fondo, padding: 24 }}>
+        <View style={{ flex: 1, backgroundColor: colores.fondo, padding: 24 }}>
             <Texto variante="titulo">Hola, {usuario.nombre}</Texto>
             <Texto color="textoSuave" style={{ marginBottom: 24 }}>
                 {usuario.rol}{usuario.unidadNombre ? ` · ${usuario.unidadNombre}` : ""}
@@ -31,6 +30,6 @@ export default function PantallaProvisoria() {
             </View>
 
             <Boton texto="Cerrar sesión" variante="peligro" onPress={cerrarSesion} />
-        </SafeAreaView>
+        </View>
     );
 }
