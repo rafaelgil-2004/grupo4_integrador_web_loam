@@ -8,6 +8,7 @@ import PantallaInicio from "../pantallas/PantallaInicio";
 import PantallaDetalleConvenio from "../pantallas/PantallaDetalleConvenio";
 import PantallaEnConstruccion from "../pantallas/PantallaEnConstruccion";
 import PantallaProvisoria from "../pantallas/PantallaProvisoria"; // hace de Perfil por ahora
+import PantallaPendientes from "../pantallas/PantallaPendientes";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -26,7 +27,7 @@ function Pestanias() {
                 tabBarIcon: ({ color, size }) => <Ionicons name={ICONOS[route.name]} size={size} color={color} />,
             })}>
             <Tab.Screen name="Inicio" component={PantallaInicio} />
-            <Tab.Screen name="Pendientes" component={PantallaEnConstruccion} />
+            <Tab.Screen name="Pendientes" component={PantallaPendientes} />
             <Tab.Screen name="Buscar" component={PantallaEnConstruccion} />
             <Tab.Screen name="Perfil" component={PantallaProvisoria} />
         </Tab.Navigator>
