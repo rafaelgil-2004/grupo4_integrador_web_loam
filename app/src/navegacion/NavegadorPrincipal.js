@@ -14,6 +14,7 @@ import PantallaBusqueda from "../pantallas/PantallaBusqueda";
 import PantallaPerfil from "../pantallas/PantallaPerfil";
 import PantallaIdentidad from "../pantallas/PantallaIdentidad";
 import PantallaSimulacion from "../pantallas/PantallaSimulacion";
+import { useRecordatorios } from "../servicios/useRecordatorios";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,6 +41,7 @@ function Pestanias() {
 }
 
 export default function NavegadorPrincipal() {
+    useRecordatorios();
     const { colores, modoOscuro } = useTema();
     // Se parte del tema de React Navigation y se pisan sus colores con los del equipo
     const base = modoOscuro ? DarkTheme : DefaultTheme;

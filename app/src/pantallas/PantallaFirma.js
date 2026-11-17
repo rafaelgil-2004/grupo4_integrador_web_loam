@@ -8,7 +8,7 @@ import { firmar } from "../servicios/api";
 import { hayBiometria, autenticarConHuella, obtenerUbicacion } from "../servicios/dispositivo";
 import { formatearFechaHora, trazosASvg } from "../utilidades";
 import { radio } from "../tema";
-import { leerIdentidad } from "../servicios/almacenamiento";
+import { leerIdentidad, guardarCache, leerCache } from "../servicios/almacenamiento";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import AvisoSinConexion from "../componentes/moleculas/AvisoSinConexion";
@@ -47,6 +47,8 @@ export default function PantallaFirma({ route, navigation }) {
             const r = await firmar(convenioId, { ...ubicacion, uriImagen: ruta });
             // La respuesta puede ser la firma o el convenio completo: se toma mi firma y, si falta algo, lo local
             const mia = r?.listaImplicados ? r.listaImplicados.find((f) => f.usuarioId === usuario.id) : r;
+            const pendientes = (await leerCache("pendientes")) ?? [];
+            await guardarCache("pendientes", pendientes.filter((c) => c.id !== convenioId));
             setComprobante({
                 fecha: mia?.fechaFirma ?? new Date().toISOString(),
                 latitud: mia?.latitud ?? ubicacion.latitud,

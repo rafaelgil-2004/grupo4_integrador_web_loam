@@ -26,3 +26,7 @@ export async function guardarApiUrl(url) {
     else await AsyncStorage.removeItem(CLAVE_API_URL);
     return apiUrlActual;
 }
+
+//recordatorio
+//1 minutos, 2 horas, 1 dia
+export const RECORDATORIOS_MINUTOS = [1, 120, 1440];
