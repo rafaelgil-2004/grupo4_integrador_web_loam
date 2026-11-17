@@ -34,17 +34,31 @@
             </div>
 
             <div class="barra-acciones">
-                <!-- El único filtro es el rol -->
-                <div class="dropdown">
-                    <button type="button" class="btn btn-borde btn-chico" id="botonFiltroRol" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
-                        <span id="textoFiltroRol">Filtrar por rol</span>
-                    </button>
-                    <ul class="dropdown-menu" id="menuRoles"></ul>
+                <button type="button" class="btn btn-borde" data-bs-toggle="collapse" data-bs-target="#panelFiltros"
+                        aria-expanded="false" aria-controls="panelFiltros">Filtros</button>
+                <a class="btn btn-convenios" href="usuario-form.html">Registrar usuario</a>
+            </div>
+
+            <div class="collapse" id="panelFiltros">
+                <div class="panel-filtros">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <label for="rol" class="form-label">Rol</label>
+                            <select class="form-select" id="rol" name="rol">
+                                <option value="">Todos</option>
+                                <option value="ADMINISTRACION">Administración</option>
+                                <option value="GESTION">Gestión</option>
+                                <option value="ESTUDIANTE">Consulta · Estudiante</option>
+                                <option value="PROFESOR">Consulta · Docente</option>
+                                <option value="DECANO">Consulta · Decano</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-convenios btn-chico">Aplicar filtros</button>
+                        <button type="button" class="btn btn-borde btn-chico" id="botonLimpiar">Limpiar</button>
+                    </div>
                 </div>
-                <a class="btn btn-convenios btn-chico" href="usuario-form.html">Registrar usuario</a>
             </div>
         </form>
 
