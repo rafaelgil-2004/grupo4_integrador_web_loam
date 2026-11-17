@@ -1,5 +1,4 @@
-// Las fechas sin hora ("2026-11-18") JavaScript las interpreta como UTC y, en Argentina
-// (UTC-3), mostrarían el día anterior. Se arman a mano como fecha local.
+//arreglo de las fechas: se muestra un dia menos
 function aFecha(valor) {
     if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
         const [anio, mes, dia] = valor.split("-").map(Number);
@@ -8,6 +7,7 @@ function aFecha(valor) {
     return new Date(valor);
 }
 
+//coversion de fecha a hora argentina
 export function formatearFecha(valor) {
     return valor ? aFecha(valor).toLocaleDateString("es-AR") : "—";
 }
@@ -16,9 +16,10 @@ export function formatearFechaHora(valor) {
     return valor ? aFecha(valor).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "—";
 }
 
+//leer los parametros de la URL
 export const parametroUrl = (nombre) => new URLSearchParams(location.search).get(nombre);
 
-// los datos de la API no se interpretan como HTML
+//crea los elementos de la pagina
 export function crearElemento(etiqueta, clases = "", texto = "") {
     const elemento = document.createElement(etiqueta);
     if (clases) elemento.className = clases;

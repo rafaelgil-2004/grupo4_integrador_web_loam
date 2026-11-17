@@ -4,13 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import CampoTexto from "../componentes/atomos/CampoTexto";
+import SelectorServidor from "../componentes/organismos/SelectorServidor";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
 import { useAutenticacion } from "../contexto/ContextoAutenticacion";
 import { login } from "../servicios/api";
 import { guardarCredenciales, leerCredenciales, borrarCredenciales } from "../servicios/almacenamiento";
 import { hayBiometria, autenticarConHuella, mostrarNotificacion } from "../servicios/dispositivo";
-import { obtenerApiUrl, guardarApiUrl } from "../configuracion";
 import { validarMail } from "../utilidades";
 
 export default function PantallaLogin() {
@@ -27,8 +27,6 @@ export default function PantallaLogin() {
     const [codigoEsperado, setCodigoEsperado] = useState("");
     const [codigo, setCodigo] = useState("");
     const [huellaLista, setHuellaLista] = useState(false);
-    const [servidor, setServidor] = useState(obtenerApiUrl());
-    const [editandoServidor, setEditandoServidor] = useState(false);
 
     useEffect(() => {
         Promise.all([hayBiometria(), leerCredenciales()])
@@ -111,12 +109,6 @@ export default function PantallaLogin() {
         }
     }
 
-    async function guardarServidor() {
-        setServidor(await guardarApiUrl(servidor));
-        setEditandoServidor(false);
-        setMensaje(null);
-    }
-
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colores.fondo }}>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24 }}>
@@ -155,18 +147,8 @@ export default function PantallaLogin() {
                     </>
                 )}
 
-                {/* La IP de la PC cambia según la red: se puede corregir sin recompilar */}
-                <View style={{ marginTop: 32 }}>
-                    {editandoServidor ? (
-                        <>
-                            <CampoTexto etiqueta="Dirección del servidor (API)" value={servidor} onChangeText={setServidor}
-                                autoCapitalize="none" autoCorrect={false} keyboardType="url" />
-                            <Boton texto="Guardar" onPress={guardarServidor} />
-                        </>
-                    ) : (
-                        <Boton texto={`Servidor: ${servidor}`} variante="enlace" onPress={() => setEditandoServidor(true)} />
-                    )}
-                </View>
+                {/* La IP de la PC cambia según la red: servidores guardados y prueba de conexión, sin recompilar */}
+                <SelectorServidor />
             </ScrollView>
         </SafeAreaView>
     );

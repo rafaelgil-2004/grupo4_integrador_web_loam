@@ -1,13 +1,12 @@
 import { API_URL } from "./config.js";
 import { obtenerToken, cerrarSesion } from "./sesion.js";
 
-/**
- * Función central: todas las llamadas a la API pasan por acá.
- * - publica: true  → no envía token ni trata el 401 como sesión vencida (solo el login)
- * - cuerpo: objeto → se envía como JSON; FormData → se envía tal cual (archivos)
- */
+//canal de comunicacion con la api
+//ruta: parametros de la url
+//objeto de opciones para la consulta
 export async function pedir(ruta, { metodo = "GET", cuerpo, publica = false, formato = "json" } = {}) {
     const cabeceras = {};
+    //la api no recuerdda las seciones
     if (!publica && obtenerToken()) {
         cabeceras["Authorization"] = `Bearer ${obtenerToken()}`;
     }
