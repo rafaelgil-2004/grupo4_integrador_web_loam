@@ -61,15 +61,17 @@ export async function obtenerUbicacion() {
 }
 
 //perfil
-// origen: "camara" | "galeria". Devuelve el uri temporal o null si se canceló
-export async function elegirFoto(origen) {
-    const opciones = { allowsEditing: true, aspect: [1, 1], quality: 0.4 }; // recorte cuadrado y poco peso: es una miniatura
+// origen: "camara" | "galeria". frontal: cámara selfie (para el registro facial)
+export async function elegirFoto(origen, frontal = false) {
+    const opciones = { allowsEditing: !frontal, aspect: [1, 1], quality: 0.4 };
     if (origen === "camara") {
         const permiso = await ImagePicker.requestCameraPermissionsAsync();
         if (!permiso.granted) throw new Error("Se necesita el permiso de cámara para tomar la foto.");
-        const r = await ImagePicker.launchCameraAsync(opciones);
+        const r = await ImagePicker.launchCameraAsync({
+            ...opciones, cameraType: frontal ? ImagePicker.CameraType.front : ImagePicker.CameraType.back,
+        });
         return r.canceled ? null : r.assets[0].uri;
     }
-    const r = await ImagePicker.launchImageLibraryAsync({ ...opciones, mediaTypes: ["images"] }); // el selector del sistema no pide permiso
+    const r = await ImagePicker.launchImageLibraryAsync({ ...opciones, mediaTypes: ["images"] });
     return r.canceled ? null : r.assets[0].uri;
 }

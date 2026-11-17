@@ -66,3 +66,12 @@ export async function borrarCache() {
     const claves = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith("convenios.cache."));
     if (claves.length) await AsyncStorage.multiRemove(claves);
 }
+
+//identidad
+// tipo: "firma" (trazos) o "rostro" (uri de la selfie de referencia). Un registro por usuario.
+export const guardarIdentidad = (usuarioId, tipo, valor) =>
+    AsyncStorage.setItem(`convenios.identidad.${tipo}.${usuarioId}`, JSON.stringify(valor));
+export async function leerIdentidad(usuarioId, tipo) {
+    try { return JSON.parse(await AsyncStorage.getItem(`convenios.identidad.${tipo}.${usuarioId}`)); } catch { return null; }
+}
+export const borrarIdentidad = (usuarioId, tipo) => AsyncStorage.removeItem(`convenios.identidad.${tipo}.${usuarioId}`);

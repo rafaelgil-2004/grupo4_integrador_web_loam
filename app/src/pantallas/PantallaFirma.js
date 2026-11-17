@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import { ScrollView, View } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import { useTema } from "../contexto/ContextoTema";
@@ -8,6 +8,7 @@ import { firmar } from "../servicios/api";
 import { hayBiometria, autenticarConHuella, obtenerUbicacion } from "../servicios/dispositivo";
 import { formatearFechaHora, trazosASvg } from "../utilidades";
 import { radio } from "../tema";
+import { leerIdentidad } from "../servicios/almacenamiento";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import AvisoSinConexion from "../componentes/moleculas/AvisoSinConexion";
@@ -24,6 +25,9 @@ export default function PantallaFirma({ route, navigation }) {
     const [paso, setPaso] = useState(null);
     const [error, setError] = useState(null);
     const [comprobante, setComprobante] = useState(null);
+    const [firmaRegistrada, setFirmaRegistrada] = useState(null);
+
+    useEffect(() => { leerIdentidad(usuario.id, "firma").then(setFirmaRegistrada); }, []);
 
     const hayFirma = trazos.some((t) => t.length >= 2);
 
@@ -75,6 +79,9 @@ export default function PantallaFirma({ route, navigation }) {
             <Texto variante="subtitulo">Firma del convenio {codigo}</Texto>
             <Texto color="textoSuave">Dibuje su firma en el recuadro. Al confirmar se pedirá su huella y se registrará su ubicación.</Texto>
 
+            {firmaRegistrada && !hayFirma && (
+                <Boton variante="secundario" texto="Usar mi firma registrada" onPress={() => setTrazos(firmaRegistrada)} />
+            )}
             <LienzoFirma trazos={trazos} onCambio={setTrazos} onTocar={setDibujando} onMedir={setMedida} />
             <Boton variante="enlace" texto="Borrar y volver a firmar" onPress={() => setTrazos([])} />
 

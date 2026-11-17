@@ -6,7 +6,7 @@ export const ALTO_LIENZO = 180;
 
 // Lienzo de firma a mano sin librerías nativas: un PanResponder captura los puntos y cada tramo
 // se dibuja como una barra fina rotada (View). El estado vive en el padre; acá solo se dibuja y captura.
-export default function LienzoFirma({ trazos, onCambio, onTocar, onMedir }) {
+export default function LienzoFirma({ trazos, onCambio, onTocar, onMedir, soloLectura = false }) {
     const trazosRef = useRef(trazos);
     trazosRef.current = trazos;
     const funciones = useRef({});
@@ -34,7 +34,7 @@ export default function LienzoFirma({ trazos, onCambio, onTocar, onMedir }) {
     })).current;
 
     return (
-        <View {...responder.panHandlers} accessibilityLabel="Área para dibujar la firma"
+        <View {...(soloLectura ? {} : responder.panHandlers)} accessibilityLabel="Área para dibujar la firma"
             onLayout={(e) => onMedir?.(e.nativeEvent.layout)}
             style={{ height: ALTO_LIENZO, backgroundColor: "#FFFFFF", borderRadius: radio, borderWidth: 1,
                      borderColor: "#6C757D", overflow: "hidden" }}>

@@ -14,7 +14,7 @@ function Dato({ etiqueta, valor }) {
     return <Texto><Texto color="textoSuave">{etiqueta}: </Texto>{valor}</Texto>;
 }
 
-export default function PantallaPerfil() {
+export default function PantallaPerfil({ navigation }) {
     const { usuario, foto, cambiarFoto, cerrarSesion } = useAutenticacion();
     const { colores, modoOscuro, tamanioLetra, cambiarModoOscuro, cambiarTamanioLetra } = useTema();
     const [error, setError] = useState(null);
@@ -70,6 +70,7 @@ export default function PantallaPerfil() {
                     ))}
                 </View>
             </View>
+            <Boton texto="Mi identidad" variante="secundario" onPress={() => navigation.navigate("Identidad")} />
 
             <Boton texto="Cerrar sesión" variante="peligro" onPress={confirmarSalida} />
         </ScrollView>

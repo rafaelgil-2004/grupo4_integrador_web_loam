@@ -12,6 +12,7 @@ import PantallaVisorPdf from "../pantallas/PantallaVisorPdf";
 import PantallaFirma from "../pantallas/PantallaFirma";
 import PantallaBusqueda from "../pantallas/PantallaBusqueda";
 import PantallaPerfil from "../pantallas/PantallaPerfil";
+import PantallaIdentidad from "../pantallas/PantallaIdentidad";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -50,6 +51,7 @@ export default function NavegadorPrincipal() {
                 <Stack.Screen name="Detalle" component={PantallaDetalleConvenio} options={{ title: "Convenio" }} />
                 <Stack.Screen name="Visor" component={PantallaVisorPdf} options={{ title: "Documento" }} />
                 <Stack.Screen name="Firma" component={PantallaFirma} options={{ title: "Firmar" }} />
+                <Stack.Screen name="Identidad" component={PantallaIdentidad} options={{ title: "Mi identidad" }} />
             </Stack.Navigator>
         </NavigationContainer>
     );
