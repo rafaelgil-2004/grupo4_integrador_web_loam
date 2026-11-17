@@ -12,7 +12,8 @@
         ["expo-location", { "locationWhenInUsePermission": "La ubicación se registra una sola vez, al firmar un convenio." }],
         ["expo-image-picker", { "photosPermission": "Para elegir tu foto de perfil.", "cameraPermission": "Para sacarte la foto de perfil." }],
         "expo-notifications",
-        ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+        ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }],
+        ["expo-image-picker", { "cameraPermission": "Se usa la cámara para tomar su foto de perfil." }]
     ]
   }
 }

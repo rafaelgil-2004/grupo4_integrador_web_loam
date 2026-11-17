@@ -56,3 +56,13 @@ export const guardarCache = (clave, datos) =>
 export async function leerCache(clave) {
     try { return JSON.parse(await AsyncStorage.getItem(`convenios.cache.${clave}`)); } catch { return null; }
 }
+
+//foto perfil
+export const guardarFoto = (usuarioId, uri) => AsyncStorage.setItem(`convenios.foto.${usuarioId}`, uri);
+export const leerFoto = (usuarioId) => AsyncStorage.getItem(`convenios.foto.${usuarioId}`);
+
+// Borra solo la caché de datos (pendientes); la foto y las preferencias se conservan
+export async function borrarCache() {
+    const claves = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith("convenios.cache."));
+    if (claves.length) await AsyncStorage.multiRemove(claves);
+}
