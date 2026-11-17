@@ -100,3 +100,13 @@ export async function firmar(convenioId, { latitud, longitud, uriImagen }) {
     if (r.status < 200 || r.status >= 300) throw new Error(cuerpo?.mensaje ?? `Error ${r.status} al registrar la firma.`);
     return cuerpo;
 }
+
+//buscar
+const aParametros = (filtros) => Object.entries(filtros)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
+
+// filtros: { q, estado, vigencia }. Respuesta paginada: { content, page: { number, totalPages } }
+export const buscarConvenios = (filtros, pagina = 0) =>
+    pedir(`/convenios?${aParametros({ ...filtros, pagina, tamanio: 20 })}`);
+export const obtenerArbol = (filtros) => pedir(`/convenios/arbol?${aParametros(filtros)}`);
