@@ -72,7 +72,8 @@ export default function PantallaPerfil({ navigation }) {
                 </View>
             </View>
             <Boton texto="Mi identidad" variante="secundario" onPress={() => navigation.navigate("Identidad")} />
-
+            <Boton texto="Manual de uso" variante="secundario" onPress={() => navigation.navigate("Manual")} />
+                
             <Boton texto="Cerrar sesión" variante="peligro" onPress={confirmarSalida} />
 
             {/* menu oculto: mantener presionada la versión 2 segundos */}

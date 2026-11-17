@@ -15,6 +15,8 @@ import PantallaPerfil from "../pantallas/PantallaPerfil";
 import PantallaIdentidad from "../pantallas/PantallaIdentidad";
 import PantallaSimulacion from "../pantallas/PantallaSimulacion";
 import { useRecordatorios } from "../servicios/useRecordatorios";
+import PantallaManual from "../pantallas/PantallaManual";
+import BotonAyuda from "../componentes/moleculas/BotonAyuda";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,7 +29,7 @@ function Pestanias() {
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 // El buscador vive en el encabezado y se ve en todas las pestañas
-                header: ({ navigation }) => <EncabezadoApp navigation={navigation} />,
+                header: ({ navigation, route }) => <EncabezadoApp navigation={navigation} route={route} />,
                 tabBarActiveTintColor: colores.acento,
                 tabBarInactiveTintColor: colores.textoSuave,
                 tabBarIcon: ({ color, size }) => <Ionicons name={ICONOS[route.name]} size={size} color={color} />,
@@ -49,13 +51,14 @@ export default function NavegadorPrincipal() {
                                       text: colores.texto, border: colores.borde, primary: colores.acento } };
     return (
         <NavigationContainer theme={tema}>
-            <Stack.Navigator>
+            <Stack.Navigator screenOptions={({ route }) => ({ headerRight: () => <BotonAyuda pantalla={route.name} /> })}>
                 <Stack.Screen name="Pestanias" component={Pestanias} options={{ headerShown: false }} />
                 <Stack.Screen name="Detalle" component={PantallaDetalleConvenio} options={{ title: "Convenio" }} />
                 <Stack.Screen name="Visor" component={PantallaVisorPdf} options={{ title: "Documento" }} />
                 <Stack.Screen name="Firma" component={PantallaFirma} options={{ title: "Firmar" }} />
                 <Stack.Screen name="Identidad" component={PantallaIdentidad} options={{ title: "Mi identidad" }} />
                 <Stack.Screen name="Simulacion" component={PantallaSimulacion} options={{ title: "Simulación" }} />
+                 <Stack.Screen name="Manual" component={PantallaManual} options={{ title: "Manual de uso" }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

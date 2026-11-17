@@ -6,8 +6,9 @@ import { useAutenticacion } from "../../contexto/ContextoAutenticacion";
 import Texto from "../atomos/Texto";
 import Avatar from "../atomos/Avatar";
 import CampoBusqueda from "../moleculas/CampoBusqueda";
+import BotonAyuda from "../moleculas/BotonAyuda";
 
-export default function EncabezadoApp({ navigation }) {
+export default function EncabezadoApp({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const { colores } = useTema();
     const { usuario, foto } = useAutenticacion();
@@ -21,6 +22,7 @@ export default function EncabezadoApp({ navigation }) {
                        alignItems: "center", gap: 10, backgroundColor: colores.superficie }}>
             <Texto style={{ fontWeight: "700", color: colores.acento }}>UNLPam</Texto>
             <CampoBusqueda valor={texto} onCambio={setTexto} onBuscar={buscar} />
+            <BotonAyuda pantalla={route.name} />
             <Pressable onPress={() => navigation.navigate("Perfil")} accessibilityRole="button" accessibilityLabel="Mi perfil">
                 <Avatar nombre={usuario.nombre} apellido={usuario.apellido} uri={foto} />
             </Pressable>
