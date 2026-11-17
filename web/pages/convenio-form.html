@@ -32,6 +32,25 @@
                 <button type="button" class="btn btn-borde btn-chico" id="botonCambiarTipo">Cambiar tipo</button>
             </div>
 
+            <!-- Datos comunes a ambos tipos: el subtipo define el código y qué marcos se pueden elegir -->
+            <div class="row g-3 mb-3" id="camposComunes">
+                <div class="col-md-6">
+                    <label for="subtipo" class="form-label">Subtipo</label>
+                    <select class="form-select" id="subtipo">
+                        <option value="">Seleccionar</option>
+                        <option value="COLABORACION">Colaboración</option>
+                        <option value="PASANTIA">Pasantía</option>
+                        <option value="PRACTICA">Práctica profesional</option>
+                        <option value="INTERCAMBIO">Intercambio</option>
+                    </select>
+                </div>
+                <!-- Solo Administración elige la unidad; Gestión trabaja siempre en la suya -->
+                <div class="col-md-6" id="campoUnidad" hidden>
+                    <label for="unidad" class="form-label">Unidad responsable</label>
+                    <select class="form-select" id="unidad"><option value="">Seleccionar</option></select>
+                </div>
+            </div>
+
             <!-- ========== Convenio marco ========== -->
             <section id="camposMarco" aria-label="Datos del convenio marco" hidden>
                 <div class="row g-3">
@@ -41,7 +60,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="m-codigo" class="form-label">Código</label>
-                        <input type="text" class="form-control" id="m-codigo">
+                        <input type="text" class="form-control" id="m-codigo" disabled placeholder="Se genera automáticamente">
                     </div>
                     <div class="col-md-6">
                         <label for="m-inicio" class="form-label">Fecha de inicio</label>
@@ -52,8 +71,13 @@
                         <input type="date" class="form-control" id="m-vencimiento">
                     </div>
                     <div class="col-md-6">
-                        <label for="m-partes" class="form-label">Partes</label>
-                        <input type="text" class="form-control" id="m-partes">
+                        <label for="m-partes" class="form-label">Partes (organización)</label>
+                        <input type="text" class="form-control" id="m-partes" maxlength="150">
+                        <div class="form-text">Institución u organización con la que se firma el convenio.</div>
+                    </div>
+                    <div class="col-12">
+                        <span class="form-label d-block">Firmantes</span>
+                        <div class="lista-firmantes" id="m-firmantes" role="group" aria-label="Firmantes"></div>
                     </div>
                 </div>
 
@@ -73,7 +97,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="e-codigo" class="form-label">Código</label>
-                        <input type="text" class="form-control" id="e-codigo">
+                        <input type="text" class="form-control" id="e-codigo" disabled placeholder="Se genera automáticamente">
                     </div>
                     <div class="col-md-6">
                         <label for="e-inicio" class="form-label">Fecha de inicio</label>
@@ -84,16 +108,18 @@
                         <input type="date" class="form-control" id="e-vencimiento">
                     </div>
                     <div class="col-md-6">
-                        <label for="e-partes" class="form-label">Partes</label>
-                        <input type="text" class="form-control" id="e-partes">
+                        <label for="e-partes" class="form-label">Partes (organización)</label>
+                        <input type="text" class="form-control" id="e-partes" maxlength="150">
+                        <div class="form-text">Institución u organización con la que se firma el convenio.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="e-marco" class="form-label">Marco del que extiende</label>
-                        <input type="text" class="form-control" id="e-marco">
+                        <select class="form-select" id="e-marco" aria-describedby="ayudaMarco"><option value="">Seleccionar</option></select>
+                        <div class="form-text" id="ayudaMarco">Convenio marco existente del mismo subtipo.</div>
                     </div>
-                    <div class="col-md-6">
-                        <label for="e-firmantes" class="form-label">Firmantes requeridos</label>
-                        <input type="text" class="form-control" id="e-firmantes">
+                    <div class="col-12">
+                        <span class="form-label d-block">Firmantes requeridos</span>
+                        <div class="lista-firmantes" id="e-firmantes" role="group" aria-label="Firmantes requeridos"></div>
                     </div>
                 </div>
 

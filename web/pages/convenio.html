@@ -30,9 +30,12 @@
                     <h1 class="h3 titulo mb-2" id="titulo"></h1>
                     <div class="d-flex flex-wrap gap-2" id="insignias"></div>
                 </div>
-                <!-- Botones de acción (próximo paso) -->
+                <!-- Acciones: editar y aceptar (el JS decide cuáles se muestran) -->
                 <div class="d-flex flex-wrap gap-2" id="acciones"></div>
             </div>
+
+            <!-- Explica en qué estado está el convenio y qué falta (datos o firmas) -->
+            <div class="aviso-estado d-none" id="avisoEstado" role="status"></div>
 
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -131,6 +134,20 @@
             </div>
         </div>
     </main>
+
+    <!-- Confirmación de "Aceptar convenio" -->
+    <div class="modal fade modal-confirmar" id="modalAceptar" tabindex="-1" aria-labelledby="tituloModalAceptar" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <h2 id="tituloModalAceptar">Aceptar convenio</h2>
+                <p>El convenio pasará de Borrador a Aceptado y quedará habilitado para que los firmantes lo firmen. Mientras no estén todas las firmas, seguirá en Aceptado.</p>
+                <div class="acciones-modal">
+                    <button type="button" class="btn btn-borde btn-chico" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-convenios btn-chico" id="confirmarAceptar">Aceptar convenio</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer id="pie" class="pie"></footer>
 

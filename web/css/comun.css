@@ -161,3 +161,18 @@ body.pagina-sitio {
 .btn-borde { background: #fff; border: 1px solid #9a9a9a; color: var(--gris-titulo); font-weight: 700; font-size: .8rem; }
 .btn-borde:hover, .btn-borde:focus-visible, .btn-borde.show { background: #fff; border-color: var(--naranja-hover); color: var(--naranja-hover); }
 .btn-chico { font-size: .72rem; padding: .3rem .75rem; }
+
+/* ---------- Botones sin bordes redondeados (todos) ---------- */
+.btn, .btn-sm, .btn-lg, .btn-convenios, .btn-borde, .btn-principal, .page-link, .boton-usuario, .opcion-tipo {
+    --bs-btn-border-radius: 0;
+    --bs-pagination-border-radius: 0;
+    border-radius: 0;
+}
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link { border-radius: 0; }
+.barra-busqueda .btn { border-radius: 0; }
+
+/* ---------- Tablas con fondo blanco (ficha del convenio: firmantes, historial, etc.) ---------- */
+.table { --bs-table-bg: #fff; background-color: #fff; }
+.tab-content { background-color: #fff; }
+.nav-tabs .nav-link, .tab-content.rounded-bottom { border-radius: 0 !important; }

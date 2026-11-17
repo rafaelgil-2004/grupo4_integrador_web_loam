@@ -2,8 +2,6 @@ import { login } from "../api.js";
 import { guardarSesion, haySesion } from "../sesion.js";
 import { mostrarAlerta, limpiarAlerta } from "../ui.js";
 
-// La web es solo para estos roles; los demás usan la app móvil
-const ROLES_WEB = ["ADMINISTRACION", "GESTION"];
 const CLAVE_MAIL_RECORDADO = "convenios.mailRecordado";
 
 if (haySesion()) location.replace("convenios.html");
@@ -60,13 +58,6 @@ formulario.addEventListener("submit", async (evento) => {
     try {
         const mail = campoMail.value.trim();
         const { token, usuario } = await login(mail, campoPassword.value);
-
-        if (!ROLES_WEB.includes(usuario.rol)) {
-            mostrarAlerta(alertas,
-                "Esta plataforma es solo para Administración y Gestión. Usá la aplicación móvil.",
-                "warning");
-            return; // no se guarda la sesión
-        }
 
         actualizarMailRecordado(mail);
         guardarSesion(token, usuario);

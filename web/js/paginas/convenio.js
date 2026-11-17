@@ -1,8 +1,8 @@
 // Página: convenio.html (ficha de un convenio)
-import { exigirSesion } from "../sesion.js";
+import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerConvenio, obtenerHistorial, listarDocumentos, subirDocumento, descargarDocumento,
-         listarObservaciones, crearObservacion } from "../api.js";
-import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver, badgeEstado, badgeVigencia,
+         listarObservaciones, crearObservacion, aceptarConvenio } from "../api.js";
+import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver, badgeEstado, badgeVigencia, esConsulta,
          NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
 import { parametroUrl, formatearFecha, formatearFechaHora, crearElemento } from "../utils.js";
 
@@ -21,6 +21,7 @@ const alertasHistorial = document.getElementById("alertasHistorial");
 
 let convenio = null;   // lo van a usar los botones de acción (próximo paso)
 let urlVisor = null;
+let cantidadDocumentos = null; // null hasta que se cargan; el aviso de estado lo necesita para saber si falta el PDF
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
@@ -37,6 +38,52 @@ function pintarCabecera(c) {
     } else if (c.vigencia) {
         insignias.append(badgeVigencia(c.vigencia));
     }
+    const firmantes = c.listaImplicados ?? [];
+    if (firmantes.length > 0) {
+        insignias.append(crearElemento("span", "badge text-bg-light border",
+            `Firmas ${firmantes.filter((f) => f.firmado).length}/${firmantes.length}`));
+    }
+}
+
+// ---------- Estado: qué falta (datos o firmas) ----------
+
+// Lo mismo que exige la API para aceptar (ConvenioServicio.validarParaAceptar)
+function datosFaltantes(c) {
+    const faltan = [];
+    if (!c.organizacion?.trim()) faltan.push("organización (Partes)");
+    if (!c.fechaInicio) faltan.push("fecha de inicio");
+    if (c.tipo !== "MARCO" && !c.convenioPadreId) faltan.push("convenio marco");
+    if (cantidadDocumentos === 0) faltan.push("PDF del convenio");
+    if ((c.listaImplicados ?? []).length === 0) faltan.push("al menos un firmante");
+    return faltan;
+}
+
+function pintarEstado(c) {
+    const aviso = document.getElementById("avisoEstado");
+    const firmantes = c.listaImplicados ?? [];
+    const pendientes = firmantes.filter((f) => !f.firmado);
+    let clase = "", titulo = "", detalle = "";
+
+    if (c.estado === "BORRADOR") {
+        const faltan = datosFaltantes(c);
+        clase = "borrador"; titulo = "Borrador: faltan datos";
+        detalle = faltan.length > 0
+            ? `Para poder aceptarlo falta: ${faltan.join(", ")}.`
+            : "Tiene todos los datos requeridos. Al aceptarlo se habilita la firma.";
+    } else if (c.estado === "ACEPTADO") {
+        clase = "aceptado"; titulo = "Aceptado: datos completos, faltan firmas";
+        detalle = `Firmaron ${firmantes.length - pendientes.length} de ${firmantes.length}.` +
+            (pendientes.length > 0 ? ` Pendientes: ${pendientes.map((f) => f.usuarioNombre).join(", ")}.` : "") +
+            (esConsulta(obtenerUsuario()?.rol) ? "" : " Si se modifica el convenio, las firmas ya registradas se anulan.");
+    } else if (c.estado === "FIRMADO") {
+        clase = "firmado"; titulo = "Firmado: están todas las firmas";
+        detalle = `${firmantes.length === 1 ? "Firmó el único firmante" : `Firmaron los ${firmantes.length} firmantes`}${c.fechaFirma ? ` (${formatearFechaHora(c.fechaFirma)})` : ""}.`;
+    } else {
+        clase = "cerrado"; titulo = c.estado === "RESCINDIDO" ? "Rescindido" : "Archivado";
+        detalle = "El convenio está cerrado y ya no admite cambios.";
+    }
+    aviso.className = `aviso-estado ${clase}`;
+    aviso.replaceChildren(crearElemento("strong", "", titulo), detalle);
 }
 
 // Agrega un par "título / valor" a la lista de definición y devuelve el <dd>.
@@ -95,10 +142,33 @@ function pintarFirmantes(firmantes) {
 }
 
 function pintarAcciones(c) {
+    if (esConsulta(obtenerUsuario()?.rol)) return; // Consulta solo mira (y firma desde la app)
     if (c.estado !== "BORRADOR" && c.estado !== "ACEPTADO") return; // solo esos estados se editan
-    const editar = crearElemento("a", "btn btn-principal", "Editar");
+    const acciones = document.getElementById("acciones");
+    const editar = crearElemento("a", "btn btn-borde", "Editar");
     editar.href = `convenio-form.html?id=${c.id}`;
-    document.getElementById("acciones").append(editar);
+    acciones.append(editar);
+
+    // Aceptar: de Borrador a Aceptado. La API revisa que no falte nada y, si falta, lo dice.
+    if (c.estado === "BORRADOR") {
+        const aceptar = crearElemento("button", "btn btn-convenios", "Aceptar convenio");
+        aceptar.type = "button";
+        const modal = new bootstrap.Modal(document.getElementById("modalAceptar"));
+        aceptar.addEventListener("click", () => modal.show());
+        document.getElementById("confirmarAceptar").addEventListener("click", async (evento) => {
+            const boton = evento.currentTarget;
+            boton.disabled = true;
+            try {
+                await aceptarConvenio(c.id);
+                location.reload();
+            } catch (error) {
+                modal.hide();
+                mostrarAlerta(alertas, error.message);
+                boton.disabled = false;
+            }
+        });
+        acciones.append(aceptar);
+    }
 }
 
 // ---------- Documentos ----------
@@ -182,6 +252,8 @@ async function cargarDocumentos() {
     limpiarAlerta(alertasDocumentos);
     try {
         const documentos = await listarDocumentos(idConvenio);
+        cantidadDocumentos = documentos.length;
+        if (convenio) pintarEstado(convenio); // el PDF es uno de los datos que pide la aceptación
         mostrar(document.getElementById("sinDocumentos"), documentos.length === 0);
         document.getElementById("listaDocumentos").replaceChildren(...documentos.map(crearItemDocumento));
     } catch (error) {
@@ -332,6 +404,7 @@ async function iniciar() {
     pintarCabecera(convenio);
     pintarDatos(convenio);
     pintarFirmantes(convenio.listaImplicados ?? []);
+    pintarEstado(convenio);
     pintarAcciones(convenio);
     prepararSubida();
     prepararObservaciones();

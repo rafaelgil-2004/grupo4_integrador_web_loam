@@ -66,3 +66,9 @@
 
 /* Botones del formulario: mismo tamaño para Cancelar y Guardar */
 .acciones-formulario .btn { font-size: .8rem; padding: .45rem 1rem; }
+
+/* Lista de firmantes (usuarios de consulta activos) con casillas */
+.lista-firmantes { border: 1px solid #8f8f8f; max-height: 170px; overflow-y: auto; padding: .4rem .6rem; font-size: .78rem; }
+.lista-firmantes .form-check { margin: .15rem 0; }
+.lista-firmantes .vacio { margin: 0; font-size: .72rem; }
+.formulario-tarjeta .form-label.d-block { font-size: .7rem; font-weight: 700; color: var(--gris-titulo); margin-bottom: .2rem; }
