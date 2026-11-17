@@ -8,6 +8,7 @@ import { nombreRol } from "../utilidades";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import Avatar from "../componentes/atomos/Avatar";
+import Constants from "expo-constants";
 
 function Dato({ etiqueta, valor }) {
     if (!valor) return null;
@@ -73,6 +74,14 @@ export default function PantallaPerfil({ navigation }) {
             <Boton texto="Mi identidad" variante="secundario" onPress={() => navigation.navigate("Identidad")} />
 
             <Boton texto="Cerrar sesión" variante="peligro" onPress={confirmarSalida} />
+
+            {/* menu oculto: mantener presionada la versión 2 segundos */}
+            <Pressable onLongPress={() => navigation.navigate("Simulacion")} delayLongPress={2000}
+                accessible={false} importantForAccessibility="no-hide-descendants" style={{ paddingVertical: 12 }}>
+                <Texto variante="pequenio" color="textoSuave" style={{ textAlign: "center" }}>
+                    Versión {Constants.expoConfig?.version ?? "1.0.0"}
+                </Texto>
+            </Pressable>
         </ScrollView>
     );
 }
