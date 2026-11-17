@@ -1,17 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { fijarToken, registrarAlVencerSesion, obtenerDatosUsuario } from "../servicios/api";
-import { guardarSesion, leerSesion, borrarSesion } from "../servicios/almacenamiento";
+import { guardarSesion, leerSesion, borrarSesion, guardarFoto, leerFoto, borrarCache } from "../servicios/almacenamiento";
+import * as FileSystem from "expo-file-system/legacy";
 
 const Contexto = createContext(null);
 
 export function ProveedorAutenticacion({ children }) {
     const [usuario, setUsuario] = useState(null);
     const [cargando, setCargando] = useState(true);
+    const [foto, setFoto] = useState(null);
 
     const cerrarSesion = useCallback(async () => {
         fijarToken(null);
         setUsuario(null);
         await borrarSesion();
+        await borrarCache();
     }, []);
 
     // La pantalla de login primero verifica credenciales y código; recién ahí llama a esto
@@ -38,8 +41,23 @@ export function ProveedorAutenticacion({ children }) {
         })();
     }, [cerrarSesion]);
 
-    const valor = useMemo(() => ({ usuario, cargando, confirmarSesion, cerrarSesion }),
-        [usuario, cargando, confirmarSesion, cerrarSesion]);
+    // Carga la foto del usuario que inició sesión
+    useEffect(() => {
+        if (usuario?.id) leerFoto(usuario.id).then(setFoto); else setFoto(null);
+    }, [usuario?.id]);
+
+    // La copia al almacenamiento de la app evita perder la foto cuando el sistema limpia el uri temporal.
+    // Nombre con marca de tiempo: así Image no muestra la versión anterior en caché.
+    const cambiarFoto = useCallback(async (uriTemporal) => {
+        const destino = `${FileSystem.documentDirectory}foto-${usuario.id}-${Date.now()}.jpg`;
+        await FileSystem.copyAsync({ from: uriTemporal, to: destino });
+        if (foto) await FileSystem.deleteAsync(foto, { idempotent: true });
+        await guardarFoto(usuario.id, destino);
+        setFoto(destino);
+    }, [usuario?.id, foto]);
+
+    const valor = useMemo(() => ({ usuario, foto, cargando, confirmarSesion, cerrarSesion, cambiarFoto }),
+        [usuario, foto, cargando, confirmarSesion, cerrarSesion, cambiarFoto]);
     return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 

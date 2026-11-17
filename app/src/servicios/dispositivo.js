@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 
 // ---------- Biometría ----------
 export async function hayBiometria() {
@@ -57,4 +58,18 @@ export async function obtenerUbicacion() {
     if (status !== "granted") throw new Error("Se necesita el permiso de ubicación para firmar.");
     const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
     return { latitud: p.coords.latitude, longitud: p.coords.longitude };
+}
+
+//perfil
+// origen: "camara" | "galeria". Devuelve el uri temporal o null si se canceló
+export async function elegirFoto(origen) {
+    const opciones = { allowsEditing: true, aspect: [1, 1], quality: 0.4 }; // recorte cuadrado y poco peso: es una miniatura
+    if (origen === "camara") {
+        const permiso = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permiso.granted) throw new Error("Se necesita el permiso de cámara para tomar la foto.");
+        const r = await ImagePicker.launchCameraAsync(opciones);
+        return r.canceled ? null : r.assets[0].uri;
+    }
+    const r = await ImagePicker.launchImageLibraryAsync({ ...opciones, mediaTypes: ["images"] }); // el selector del sistema no pide permiso
+    return r.canceled ? null : r.assets[0].uri;
 }

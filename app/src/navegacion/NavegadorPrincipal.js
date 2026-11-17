@@ -7,11 +7,11 @@ import EncabezadoApp from "../componentes/organismos/EncabezadoApp";
 import PantallaInicio from "../pantallas/PantallaInicio";
 import PantallaDetalleConvenio from "../pantallas/PantallaDetalleConvenio";
 import PantallaEnConstruccion from "../pantallas/PantallaEnConstruccion";
-import PantallaProvisoria from "../pantallas/PantallaProvisoria"; // hace de Perfil por ahora
 import PantallaPendientes from "../pantallas/PantallaPendientes";
 import PantallaVisorPdf from "../pantallas/PantallaVisorPdf";
 import PantallaFirma from "../pantallas/PantallaFirma";
 import PantallaBusqueda from "../pantallas/PantallaBusqueda";
+import PantallaPerfil from "../pantallas/PantallaPerfil";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -32,7 +32,7 @@ function Pestanias() {
             <Tab.Screen name="Inicio" component={PantallaInicio} />
             <Tab.Screen name="Pendientes" component={PantallaPendientes} />
             <Tab.Screen name="Buscar" component={PantallaBusqueda} />
-            <Tab.Screen name="Perfil" component={PantallaProvisoria} />
+            <Tab.Screen name="Perfil" component={PantallaPerfil} />
         </Tab.Navigator>
     );
 }

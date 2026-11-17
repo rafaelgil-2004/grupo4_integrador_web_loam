@@ -10,7 +10,7 @@ import CampoBusqueda from "../moleculas/CampoBusqueda";
 export default function EncabezadoApp({ navigation }) {
     const insets = useSafeAreaInsets();
     const { colores } = useTema();
-    const { usuario } = useAutenticacion();
+    const { usuario, foto } = useAutenticacion();
     const [texto, setTexto] = useState("");
 
     // "momento" cambia en cada envío para que la pantalla de búsqueda se entere aunque el texto sea el mismo
@@ -22,7 +22,7 @@ export default function EncabezadoApp({ navigation }) {
             <Texto style={{ fontWeight: "700", color: colores.acento }}>UNLPam</Texto>
             <CampoBusqueda valor={texto} onCambio={setTexto} onBuscar={buscar} />
             <Pressable onPress={() => navigation.navigate("Perfil")} accessibilityRole="button" accessibilityLabel="Mi perfil">
-                <Avatar nombre={usuario.nombre} apellido={usuario.apellido} />
+                <Avatar nombre={usuario.nombre} apellido={usuario.apellido} uri={foto} />
             </Pressable>
         </View>
     );

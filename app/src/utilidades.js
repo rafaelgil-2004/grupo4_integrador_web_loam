@@ -33,3 +33,7 @@ export function trazosASvg(trazos, ancho, alto) {
         `<rect width="100%" height="100%" fill="white"/>` +
         `<path d="${camino}" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
 }
+
+//perfil
+const ROLES = { ADMINISTRACION: "Administración", GESTION: "Gestión", ESTUDIANTE: "Estudiante", PROFESOR: "Profesor", DECANO: "Decano" };
+export const nombreRol = (rol) => ROLES[rol] ?? rol;
