@@ -19,10 +19,10 @@ export function formatearFechaHora(valor) {
 //leer los parametros de la URL
 export const parametroUrl = (nombre) => new URLSearchParams(location.search).get(nombre);
 
-//crea los elementos de la pagina
+//crea los elementos HTML de la pagina
 export function crearElemento(etiqueta, clases = "", texto = "") {
-    const elemento = document.createElement(etiqueta);
-    if (clases) elemento.className = clases;
-    if (texto) elemento.textContent = texto;
+    const elemento = document.createElement(etiqueta);//geneta el "html"
+    if (clases) elemento.className = clases;//agrega l0s diseños
+    if (texto) elemento.textContent = texto;//proteccion XSS
     return elemento;
 }

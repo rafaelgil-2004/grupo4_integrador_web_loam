@@ -1,13 +1,13 @@
-// Página: convenios.html (resumen + árbol de convenios)
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerArbol, obtenerConvenio, obtenerResumen, listarUnidades,
          listarDocumentos, descargarDocumento } from "../api.js";
 import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
 import { formatearFecha, crearElemento } from "../utils.js";
 
-// Campos del formulario que viajan como filtros a la API
+//lista de filtros que se envia a la api
 const CAMPOS = ["q", "tipo", "subtipo", "estado", "unidadId", "anioFirma", "vigencia"];
-// Estado del convenio → texto de la etiqueta y su color
+
+//texto de las etiqutas y color de las mismas
 const ETIQUETA_ESTADO = {
     BORRADOR:   ["Borrador", ""],
     ACEPTADO:   ["Pendiente de firmas", "espera"],
@@ -21,15 +21,15 @@ const alertas = document.getElementById("alertas");
 const resultados = document.getElementById("resultados");
 const contenedorArbol = document.getElementById("arbol");
 
-let ultimaBusqueda = 0;
-let nodosActuales = [];
-let abiertos = new Set();        // ids de los convenios desplegados
-let detalles = new Map();        // id → convenio completo (firmas, fechas, partes)
+let ultimaBusqueda = 0;//contador para evitar problemas con multiples busquedas
+let nodosActuales = [];//arbol de documentos que se muestra en pantalla
+let abiertos = new Set();//id de los ocnvenios desplegados
+let detalles = new Map();//informacion completa del combenio
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
-// ---------- Filtros y URL ----------
-
+/*filtros y url*/
+//armar la lista de filtros a usar en la consulta, en formato objeto
 function filtrosDelFormulario() {
     const filtros = {};
     for (const campo of CAMPOS) {
@@ -40,12 +40,13 @@ function filtrosDelFormulario() {
     return filtros;
 }
 
-// Deja la búsqueda en la dirección (sirve para los enlaces del resumen y para recargar)
+// para escribir en la URL
 function sincronizarUrl(filtros) {
     const texto = new URLSearchParams(filtros).toString();
     history.replaceState(null, "", texto ? `?${texto}` : location.pathname);
 }
 
+//de la URL al formulario
 function aplicarUrlAlFormulario() {
     const parametros = new URLSearchParams(location.search);
     let hayFiltros = false;
@@ -59,30 +60,32 @@ function aplicarUrlAlFormulario() {
         formulario.elements.incluirArchivados.checked = true;
         hayFiltros = true;
     }
-    if (hayFiltros) { // si llegó con filtros, el panel se muestra abierto
+    if (hayFiltros) { // si llega con filtros, el panel se muestra abierto
         document.getElementById("panelFiltros").classList.add("show");
         document.querySelector('[data-bs-target="#panelFiltros"]').setAttribute("aria-expanded", "true");
     }
 }
 
-// ---------- Búsqueda ----------
+// Búsqueda
 
-// El árbol puede traer los documentos como nodos (tipo DOCUMENTO): no son convenios, se descartan
+//descarta los DOCUMENTO
 function soloConvenios(nodos) {
     return nodos
         .filter((n) => n.tipo !== "DOCUMENTO")
         .map((n) => ({ ...n, hijos: soloConvenios(n.hijos ?? []) }));
 }
 
+//arbol a lista plana
 function aplanar(nodos) {
     return nodos.flatMap((n) => [n, ...aplanar(n.hijos)]);
 }
 
+//largo de la lista
 function contar(nodos) {
     return aplanar(nodos).length;
 }
 
-// Pide el detalle de cada convenio (firmas, fechas, partes) para armar las etiquetas
+//detalle de cada convenio (firmas, fechas, partes) para armar las etiquetas
 async function cargarDetalles(nodos) {
     detalles = new Map();
     const pedidos = await Promise.allSettled(aplanar(nodos).map((n) => obtenerConvenio(n.id)));
@@ -91,19 +94,21 @@ async function cargarDetalles(nodos) {
     });
 }
 
+//
 async function buscar() {
-    // Si el usuario busca dos veces seguidas, una respuesta lenta de la primera no debe pisar la segunda
     const numero = ++ultimaBusqueda;
     limpiarAlerta(alertas);
+    //toma los filtros
     const filtros = filtrosDelFormulario();
     sincronizarUrl(filtros);
     marcarCargando(true);
+    //pide el arbol y carga los detalles
     try {
         const nodos = soloConvenios(await obtenerArbol(filtros));
         await cargarDetalles(nodos);
         if (numero !== ultimaBusqueda) return;
         nodosActuales = nodos;
-        abiertos = new Set(nodos.map((n) => n.id)); // los marcos (raíces) se muestran abiertos
+        abiertos = new Set(nodos.map((n) => n.id)); // los marcos se muestran abiertos
         pintarArbol();
     } catch (error) {
         if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
@@ -112,14 +117,17 @@ async function buscar() {
     }
 }
 
+//spinner de carga
 function marcarCargando(cargando) {
     resultados.setAttribute("aria-busy", String(cargando));
     mostrar(document.getElementById("cargando"), cargando);
     if (cargando) mostrar(document.getElementById("sinResultados"), false);
 }
 
-// ---------- Árbol de tarjetas ----------
+/*dibujo del arbol*/
 
+//creacion de etiquetas
+//elemento
 function etiqueta(texto, color = "") {
     return crearElemento("span", `etiqueta ${color}`.trim(), texto);
 }
@@ -136,6 +144,7 @@ function etiquetasDe(nodo, c) {
     return lista;
 }
 
+//formato de las tarjetas desplegadas
 function textoFechas(c) {
     const partes = [];
     if (c.fechaFirma) partes.push(`Firmado ${formatearFecha(c.fechaFirma)}`);
@@ -155,6 +164,7 @@ function agregarDato(lista, titulo, valor) {
     lista.append(caja);
 }
 
+//quien firmo y quien no
 function crearFirmas(implicados) {
     const bloque = crearElemento("div", "tc-firmas");
     bloque.append(crearElemento("h3", "", "Firmas registradas"));
@@ -175,6 +185,7 @@ function crearFirmas(implicados) {
     return bloque;
 }
 
+//detalle desplegado
 function crearCuerpo(nodo, c, id) {
     const cuerpo = crearElemento("div", "tc-cuerpo");
     cuerpo.id = id;
@@ -195,10 +206,10 @@ function crearCuerpo(nodo, c, id) {
     if ((c.listaImplicados ?? []).length > 0) cuerpo.append(crearFirmas(c.listaImplicados));
 
     const acciones = crearElemento("div", "tc-acciones");
-    const historial = crearElemento("a", "btn btn-convenios btn-chico", "Ver historial");
+    const historial = crearElemento("a", "btn btn-convenios btn-chico", "Ver datos del convenio");
     historial.href = `convenio.html?id=${nodo.id}`;
     acciones.append(historial);
-    // Solo Administración y Gestión editan, y únicamente en Borrador o Aceptado
+    // Solo Administración y Gestión editan y solo si es Borrador o Aceptado
     const puedeEditar = !esConsulta(obtenerUsuario().rol) && ["BORRADOR", "ACEPTADO"].includes(c.estado);
     if (puedeEditar) {
         const editar = crearElemento("a", "btn btn-borde btn-chico", "Editar");
@@ -213,12 +224,13 @@ async function descargarPdf(nodo, boton) {
     boton.disabled = true;
     try {
         const documentos = await listarDocumentos(nodo.id);
+        //no hay documentos
         if (documentos.length === 0) {
             mostrarAlerta(alertas, `El convenio ${nodo.codigo} todavía no tiene documento.`, "warning");
             alertas.scrollIntoView({ block: "nearest" });
             return;
         }
-        const documento = documentos.reduce((a, b) => (b.id > a.id ? b : a)); // el más reciente
+        const documento = documentos.reduce((a, b) => (b.id > a.id ? b : a)); // toma el documento mas reciente
         const url = URL.createObjectURL(await descargarDocumento(documento.id));
         const enlace = crearElemento("a");
         enlace.href = url;

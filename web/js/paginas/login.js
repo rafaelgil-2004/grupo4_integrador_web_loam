@@ -23,7 +23,7 @@ function marcarCargando(cargando) {
     textoBoton.textContent = cargando ? "Ingresando..." : TEXTO_BOTON;
 }
 
-// "Recordar usuario": se guarda solo el mail, nunca la contraseña
+// Recordar usuario
 try {
     const mailGuardado = localStorage.getItem(CLAVE_MAIL_RECORDADO);
     if (mailGuardado) {
@@ -31,26 +31,26 @@ try {
         campoRecordar.checked = true;
         campoPassword.focus();
     }
-} catch { /* el almacenamiento del navegador no está disponible */ }
+} catch { /* almacenamiento del navegador no disponible */ }
 
 function actualizarMailRecordado(mail) {
     try {
         if (campoRecordar.checked) localStorage.setItem(CLAVE_MAIL_RECORDADO, mail);
         else localStorage.removeItem(CLAVE_MAIL_RECORDADO);
-    } catch { /* ídem */ }
+    } catch { }
 }
 
-// No hay restablecimiento automático: las personas las registra Administración
+// No hay restablecimiento automático
 enlaceOlvido.addEventListener("click", (evento) => {
     evento.preventDefault();
     mostrarAlerta(alertas, "Para restablecer tu contraseña, comunicate con Administración.", "info");
 });
 
+//submit del login
 formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     limpiarAlerta(alertas);
 
-    // Muestra los mensajes de "invalid-feedback" de Bootstrap
     formulario.classList.add("was-validated");
     if (!formulario.checkValidity()) return;
 

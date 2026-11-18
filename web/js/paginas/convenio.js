@@ -1,7 +1,7 @@
-// Página: convenio.html (ficha de un convenio)
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerConvenio, obtenerHistorial, listarDocumentos, subirDocumento, descargarDocumento,
-         listarObservaciones, crearObservacion, aceptarConvenio } from "../api.js";
+         listarObservaciones, crearObservacion, aceptarConvenio,
+         eliminarConvenio, rescindirConvenio, archivarConvenio } from "../api.js";
 import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver, badgeEstado, badgeVigencia, esConsulta,
          NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
 import { parametroUrl, formatearFecha, formatearFechaHora, crearElemento } from "../utils.js";
@@ -19,9 +19,9 @@ const alertasDocumentos = document.getElementById("alertasDocumentos");
 const alertasObservaciones = document.getElementById("alertasObservaciones");
 const alertasHistorial = document.getElementById("alertasHistorial");
 
-let convenio = null;   // lo van a usar los botones de acción (próximo paso)
+let convenio = null;
 let urlVisor = null;
-let cantidadDocumentos = null; // null hasta que se cargan; el aviso de estado lo necesita para saber si falta el PDF
+let cantidadDocumentos = null; 
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
@@ -80,7 +80,9 @@ function pintarEstado(c) {
         detalle = `${firmantes.length === 1 ? "Firmó el único firmante" : `Firmaron los ${firmantes.length} firmantes`}${c.fechaFirma ? ` (${formatearFechaHora(c.fechaFirma)})` : ""}.`;
     } else {
         clase = "cerrado"; titulo = c.estado === "RESCINDIDO" ? "Rescindido" : "Archivado";
-        detalle = "El convenio está cerrado y ya no admite cambios.";
+        detalle = c.estado === "RESCINDIDO"
+            ? "El convenio terminó antes de tiempo y ya no admite cambios. Solo puede archivarse."
+            : "El convenio está cerrado y ya no admite cambios.";
     }
     aviso.className = `aviso-estado ${clase}`;
     aviso.replaceChildren(crearElemento("strong", "", titulo), detalle);
@@ -141,33 +143,125 @@ function pintarFirmantes(firmantes) {
     }));
 }
 
+// ---------- Acciones de estado ----------
+
+// Modal genérico de confirmación. Devuelve una Promesa: { motivo } si confirma, null si cancela.
+// motivo: "obligatorio" | "opcional" | null (sin campo de texto)
+function confirmarAccion({ titulo, texto, textoBoton, peligro = false, motivo = null, etiquetaMotivo = "Motivo" }) {
+    const elemento = document.getElementById("modalAccion");
+    const modal = bootstrap.Modal.getOrCreateInstance(elemento);
+    const campoMotivo = document.getElementById("motivoAccion");
+    const boton = document.getElementById("confirmarAccion");
+
+    document.getElementById("tituloModalAccion").textContent = titulo;
+    document.getElementById("textoModalAccion").textContent = texto;
+    document.getElementById("campoMotivoAccion").hidden = motivo === null;
+    document.getElementById("etiquetaMotivoAccion").textContent =
+        motivo === "opcional" ? `${etiquetaMotivo} (opcional)` : etiquetaMotivo;
+    campoMotivo.value = "";
+    campoMotivo.classList.remove("is-invalid");
+    boton.textContent = textoBoton;
+    boton.className = `btn btn-chico ${peligro ? "btn-danger" : "btn-convenios"}`;
+
+    return new Promise((resolver) => {
+        let resultado = null;
+        // El AbortController agrupa los listeners de ESTA apertura y los quita todos juntos al cerrar;
+        // si no, el modal (que es uno solo) acumularía los de aperturas anteriores
+        const control = new AbortController();
+        const opciones = { signal: control.signal };
+
+        boton.addEventListener("click", () => {
+            const escrito = campoMotivo.value.trim();
+            if (motivo === "obligatorio" && !escrito) {
+                campoMotivo.classList.add("is-invalid");
+                campoMotivo.focus();
+                return;
+            }
+            resultado = { motivo: escrito || null };
+            modal.hide();
+        }, opciones);
+        campoMotivo.addEventListener("input", () => campoMotivo.classList.remove("is-invalid"), opciones);
+        // Único punto de salida (confirmar, Cancelar, Esc o clic afuera): se resuelve cuando
+        // terminó la animación de cierre, así no se superpone con lo que venga después
+        elemento.addEventListener("hidden.bs.modal", () => { control.abort(); resolver(resultado); }, opciones);
+        modal.show();
+    });
+}
+
+// Llama a la API; si sale bien recarga la ficha (estado, insignias e historial nuevos) o va a "destino"
+async function ejecutarAccion(boton, llamada, destino = null) {
+    boton.disabled = true;
+    limpiarAlerta(alertas);
+    try {
+        await llamada();
+        if (destino) location.replace(destino); // replace: "Atrás" no vuelve a una ficha que ya no existe
+        else location.reload();
+    } catch (error) {
+        mostrarAlerta(alertas, error.message); // p. ej. TIENE_DEPENDIENTES o datos faltantes al aceptar
+        alertas.scrollIntoView({ block: "nearest" });
+        boton.disabled = false;
+    }
+}
+
+function crearBotonAccion(texto, clases, alConfirmar, opcionesModal) {
+    const boton = crearElemento("button", clases, texto);
+    boton.type = "button";
+    boton.addEventListener("click", async () => {
+        const respuesta = await confirmarAccion(opcionesModal);
+        if (respuesta) ejecutarAccion(boton, () => alConfirmar(respuesta.motivo), opcionesModal.destino);
+    });
+    return boton;
+}
+
+// Botones según el circuito de estados (la API vuelve a validar cada transición)
 function pintarAcciones(c) {
     if (esConsulta(obtenerUsuario()?.rol)) return; // Consulta solo mira (y firma desde la app)
-    if (c.estado !== "BORRADOR" && c.estado !== "ACEPTADO") return; // solo esos estados se editan
     const acciones = document.getElementById("acciones");
-    const editar = crearElemento("a", "btn btn-borde", "Editar");
-    editar.href = `convenio-form.html?id=${c.id}`;
-    acciones.append(editar);
 
-    // Aceptar: de Borrador a Aceptado. La API revisa que no falte nada y, si falta, lo dice.
+    if (c.estado === "BORRADOR" || c.estado === "ACEPTADO") {
+        const editar = crearElemento("a", "btn btn-borde", "Editar");
+        editar.href = `convenio-form.html?id=${c.id}`;
+        acciones.append(editar);
+    }
+
     if (c.estado === "BORRADOR") {
-        const aceptar = crearElemento("button", "btn btn-convenios", "Aceptar convenio");
-        aceptar.type = "button";
-        const modal = new bootstrap.Modal(document.getElementById("modalAceptar"));
-        aceptar.addEventListener("click", () => modal.show());
-        document.getElementById("confirmarAceptar").addEventListener("click", async (evento) => {
-            const boton = evento.currentTarget;
-            boton.disabled = true;
-            try {
-                await aceptarConvenio(c.id);
-                location.reload();
-            } catch (error) {
-                modal.hide();
-                mostrarAlerta(alertas, error.message);
-                boton.disabled = false;
-            }
-        });
-        acciones.append(aceptar);
+        acciones.append(crearBotonAccion("Aceptar convenio", "btn btn-convenios", () => aceptarConvenio(c.id), {
+            titulo: "Aceptar convenio",
+            texto: "El convenio pasará de Borrador a Aceptado y quedará habilitado para que los firmantes lo firmen. Mientras no estén todas las firmas, seguirá en Aceptado.",
+            textoBoton: "Aceptar convenio",
+        }));
+        acciones.append(crearBotonAccion("Eliminar", "btn btn-borde", () => eliminarConvenio(c.id), {
+            titulo: "Eliminar borrador",
+            texto: `Se eliminará ${c.codigo} junto con sus firmantes, documentos, observaciones e historial. No se puede deshacer.`,
+            textoBoton: "Eliminar",
+            peligro: true,
+            destino: "convenios.html",
+        }));
+    }
+
+    if (c.estado === "FIRMADO") {
+        // La adenda modifica un convenio vigente sin reemplazarlo
+        const adenda = crearElemento("a", "btn btn-convenios", "Crear adenda");
+        adenda.href = `convenio-form.html?padre=${c.id}`;
+        acciones.append(adenda);
+
+        acciones.append(crearBotonAccion("Rescindir", "btn btn-borde", (motivo) => rescindirConvenio(c.id, motivo), {
+            titulo: "Rescindir convenio",
+            texto: "El convenio terminará antes de tiempo y pasará a Rescindido. Ya no admitirá cambios ni documentos.",
+            textoBoton: "Rescindir",
+            peligro: true,
+            motivo: "obligatorio",
+            etiquetaMotivo: "Fundamento de la rescisión",
+        }));
+    }
+
+    if (c.estado === "FIRMADO" || c.estado === "RESCINDIDO") {
+        acciones.append(crearBotonAccion("Archivar", "btn btn-borde", (motivo) => archivarConvenio(c.id, motivo), {
+            titulo: "Archivar convenio",
+            texto: "Cierre administrativo: el convenio pasará a Archivado y dejará de aparecer en el listado, salvo que se marque «Incluir archivados».",
+            textoBoton: "Archivar",
+            motivo: "opcional",
+        }));
     }
 }
 
@@ -265,6 +359,9 @@ function prepararSubida() {
     const formulario = document.getElementById("formularioSubida");
     const campo = document.getElementById("archivoPdf");
     const boton = document.getElementById("botonSubir");
+
+    // Consulta no adjunta documentos
+    if (esConsulta(obtenerUsuario()?.rol)) { formulario.hidden = true; return; } 
 
     // La API no admite documentos en convenios cerrados
     if (convenio.estado === "RESCINDIDO" || convenio.estado === "ARCHIVADO") {

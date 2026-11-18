@@ -45,6 +45,7 @@ public class DocumentoServicio {
 
     public DocumentoRespuesta subir(Long convenioId, MultipartFile archivo) {
         Convenio c = convenioServicio.obtenerVisible(convenioId);
+        convenioServicio.exigirEscritura(c);
         if (c.getEstado() == EstadoConvenio.RESCINDIDO || c.getEstado() == EstadoConvenio.ARCHIVADO)
             throw new ConflictoException("TRANSICION_INVALIDA",
                 "No se pueden adjuntar documentos a un convenio " + c.getEstado());

@@ -135,15 +135,20 @@
         </div>
     </main>
 
-    <!-- Confirmación de "Aceptar convenio" -->
-    <div class="modal fade modal-confirmar" id="modalAceptar" tabindex="-1" aria-labelledby="tituloModalAceptar" aria-hidden="true">
+        <!-- Confirmación de acciones de estado (aceptar, eliminar, rescindir, archivar): el JS completa los textos -->
+    <div class="modal fade modal-confirmar" id="modalAccion" tabindex="-1" aria-labelledby="tituloModalAccion" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <h2 id="tituloModalAceptar">Aceptar convenio</h2>
-                <p>El convenio pasará de Borrador a Aceptado y quedará habilitado para que los firmantes lo firmen. Mientras no estén todas las firmas, seguirá en Aceptado.</p>
+                <h2 id="tituloModalAccion"></h2>
+                <p id="textoModalAccion"></p>
+                <div class="mb-3" id="campoMotivoAccion" hidden>
+                    <label for="motivoAccion" class="form-label" id="etiquetaMotivoAccion">Motivo</label>
+                    <textarea class="form-control" id="motivoAccion" rows="3" maxlength="255"></textarea>
+                    <div class="invalid-feedback">Este dato es obligatorio.</div>
+                </div>
                 <div class="acciones-modal">
                     <button type="button" class="btn btn-borde btn-chico" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-convenios btn-chico" id="confirmarAceptar">Aceptar convenio</button>
+                    <button type="button" class="btn btn-chico" id="confirmarAccion"></button>
                 </div>
             </div>
         </div>
