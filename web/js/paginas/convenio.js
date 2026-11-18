@@ -25,7 +25,7 @@ let cantidadDocumentos = null;
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
-// ---------- Cabecera y datos ----------
+//cabecera y datos
 
 function pintarCabecera(c) {
     document.title = `${c.codigo} | Convenios UNLPam`;
@@ -45,9 +45,7 @@ function pintarCabecera(c) {
     }
 }
 
-// ---------- Estado: qué falta (datos o firmas) ----------
-
-// Lo mismo que exige la API para aceptar (ConvenioServicio.validarParaAceptar)
+//indicador de que datos faltan en un borrador
 function datosFaltantes(c) {
     const faltan = [];
     if (!c.organizacion?.trim()) faltan.push("organización (Partes)");
@@ -58,6 +56,12 @@ function datosFaltantes(c) {
     return faltan;
 }
 
+/*borrador: que falta
+aceptado: cuantos firmaron y quienes faltan
+firmado: cuando se completo
+recindido/archivado: indica que el convenio esta cerrado
+advierte a quienes pueden editar que las firmas se anulan 
+ */
 function pintarEstado(c) {
     const aviso = document.getElementById("avisoEstado");
     const firmantes = c.listaImplicados ?? [];
@@ -88,15 +92,14 @@ function pintarEstado(c) {
     aviso.replaceChildren(crearElemento("strong", "", titulo), detalle);
 }
 
-// Agrega un par "título / valor" a la lista de definición y devuelve el <dd>.
-// "contenido" puede ser texto o un nodo; el texto se agrega como texto, no como HTML.
+//soporte para la lista de datos
 function agregarFila(lista, titulo, contenido) {
     const dd = crearElemento("dd", "col-sm-9");
     dd.append(contenido);
     lista.append(crearElemento("dt", "col-sm-3 fw-semibold", titulo), dd);
     return dd;
 }
-
+//lista de datos
 function pintarDatos(c) {
     const lista = document.getElementById("listaDatos");
     agregarFila(lista, "Tipo", `${NOMBRES_TIPO[c.tipo] ?? c.tipo} · ${NOMBRES_SUBTIPO[c.subtipo] ?? c.subtipo}`);
@@ -110,7 +113,6 @@ function pintarDatos(c) {
     agregarFila(lista, "Fecha de firma", formatearFechaHora(c.fechaFirma));
 
     if (c.convenioPadreId) {
-        // Solo se conoce el id del padre: se consulta para mostrar su código y título
         const dd = agregarFila(lista, "Convenio padre", "Cargando...");
         obtenerConvenio(c.convenioPadreId)
             .then((padre) => {
@@ -126,6 +128,7 @@ function pintarDatos(c) {
     agregarFila(lista, "Última actualización", formatearFechaHora(c.fechaActualizacion));
 }
 
+//lista de firmantes
 function pintarFirmantes(firmantes) {
     mostrar(document.getElementById("sinFirmantes"), firmantes.length === 0);
     mostrar(document.getElementById("contenedorFirmantes"), firmantes.length > 0);
@@ -143,10 +146,8 @@ function pintarFirmantes(firmantes) {
     }));
 }
 
-// ---------- Acciones de estado ----------
-
-// Modal genérico de confirmación. Devuelve una Promesa: { motivo } si confirma, null si cancela.
-// motivo: "obligatorio" | "opcional" | null (sin campo de texto)
+// Acciones segun estado estado(botones)
+//modal o pagina de la accion corespondiente
 function confirmarAccion({ titulo, texto, textoBoton, peligro = false, motivo = null, etiquetaMotivo = "Motivo" }) {
     const elemento = document.getElementById("modalAccion");
     const modal = bootstrap.Modal.getOrCreateInstance(elemento);
@@ -165,8 +166,6 @@ function confirmarAccion({ titulo, texto, textoBoton, peligro = false, motivo = 
 
     return new Promise((resolver) => {
         let resultado = null;
-        // El AbortController agrupa los listeners de ESTA apertura y los quita todos juntos al cerrar;
-        // si no, el modal (que es uno solo) acumularía los de aperturas anteriores
         const control = new AbortController();
         const opciones = { signal: control.signal };
 
@@ -188,21 +187,21 @@ function confirmarAccion({ titulo, texto, textoBoton, peligro = false, motivo = 
     });
 }
 
-// Llama a la API; si sale bien recarga la ficha (estado, insignias e historial nuevos) o va a "destino"
+//resolucion de la accion realizada
 async function ejecutarAccion(boton, llamada, destino = null) {
     boton.disabled = true;
     limpiarAlerta(alertas);
     try {
         await llamada();
-        if (destino) location.replace(destino); // replace: "Atrás" no vuelve a una ficha que ya no existe
+        if (destino) location.replace(destino);
         else location.reload();
     } catch (error) {
-        mostrarAlerta(alertas, error.message); // p. ej. TIENE_DEPENDIENTES o datos faltantes al aceptar
+        mostrarAlerta(alertas, error.message); 
         alertas.scrollIntoView({ block: "nearest" });
         boton.disabled = false;
     }
 }
-
+//fabrica los botones 
 function crearBotonAccion(texto, clases, alConfirmar, opcionesModal) {
     const boton = crearElemento("button", clases, texto);
     boton.type = "button";
@@ -213,7 +212,7 @@ function crearBotonAccion(texto, clases, alConfirmar, opcionesModal) {
     return boton;
 }
 
-// Botones según el circuito de estados (la API vuelve a validar cada transición)
+// que botones segun el rol
 function pintarAcciones(c) {
     if (esConsulta(obtenerUsuario()?.rol)) return; // Consulta solo mira (y firma desde la app)
     const acciones = document.getElementById("acciones");
@@ -265,19 +264,17 @@ function pintarAcciones(c) {
     }
 }
 
-// ---------- Documentos ----------
+//documentos
 
 function mensajeDeDescarga(error) {
     return error.estado === 404 ? "El archivo no está disponible en el servidor." : error.message;
 }
-
+//visor del pdf desde la pagina sin descargar
 async function verDocumento(documento, boton) {
     limpiarAlerta(alertasDocumentos);
     boton.disabled = true;
     try {
         const blob = await descargarDocumento(documento.id);
-        // El PDF se muestra desde una URL local (blob:) y no desde la URL de la API, porque un
-        // <iframe> no puede enviar el token. Al cambiar de documento se libera el anterior.
         if (urlVisor) URL.revokeObjectURL(urlVisor);
         urlVisor = URL.createObjectURL(blob);
         document.getElementById("visorPdf").src = urlVisor;
@@ -325,7 +322,6 @@ function crearItemDocumento(d) {
     const acciones = crearElemento("div", "d-flex gap-2");
     acciones.append(botonVer, botonBajar);
 
-    // La "marca de verificación": quién lo subió, cuándo y la huella SHA-256 del archivo
     const hash = crearElemento("code", "", `${d.sha256.slice(0, 16)}…`);
     hash.title = d.sha256;
     const marca = crearElemento("small", "d-block text-body-secondary");
@@ -347,14 +343,14 @@ async function cargarDocumentos() {
     try {
         const documentos = await listarDocumentos(idConvenio);
         cantidadDocumentos = documentos.length;
-        if (convenio) pintarEstado(convenio); // el PDF es uno de los datos que pide la aceptación
+        if (convenio) pintarEstado(convenio); 
         mostrar(document.getElementById("sinDocumentos"), documentos.length === 0);
         document.getElementById("listaDocumentos").replaceChildren(...documentos.map(crearItemDocumento));
     } catch (error) {
         mostrarAlerta(alertasDocumentos, error.message);
     }
 }
-
+//control de subida de documentos
 function prepararSubida() {
     const formulario = document.getElementById("formularioSubida");
     const campo = document.getElementById("archivoPdf");
@@ -396,8 +392,8 @@ function prepararSubida() {
     });
 }
 
-// ---------- Observaciones ----------
-
+//observaciones
+//lista de comentarios con control ofensivo
 async function cargarObservaciones() {
     limpiarAlerta(alertasObservaciones);
     try {
@@ -445,8 +441,8 @@ function prepararObservaciones() {
     });
 }
 
-// ---------- Historial ----------
-
+// historial 
+//las celdas con el paso en caso de ser necesario
 function crearCeldaEstados(h) {
     const celda = crearElemento("td", "text-nowrap");
     if (h.estadoAnterior && h.estadoNuevo && h.estadoAnterior !== h.estadoNuevo) {
@@ -458,7 +454,7 @@ function crearCeldaEstados(h) {
     }
     return celda;
 }
-
+//tabla
 async function cargarHistorial() {
     limpiarAlerta(alertasHistorial);
     try {
@@ -477,7 +473,6 @@ async function cargarHistorial() {
         mostrarAlerta(alertasHistorial, error.message);
     }
 }
-
 
 
 async function iniciar() {

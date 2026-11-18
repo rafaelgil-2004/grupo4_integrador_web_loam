@@ -274,11 +274,12 @@ async function descargarPdf(nodo, boton) {
             alertas.scrollIntoView({ block: "nearest" });
             return;
         }
-        const documento = documentos.reduce((a, b) => (b.id > a.id ? b : a)); // toma el documento mas reciente
+        const documento = documentos.reduce((a, b) => (b.id > a.id ? b : a)); // el documento mas reciente
         const url = URL.createObjectURL(await descargarDocumento(documento.id));
         const enlace = crearElemento("a");
         enlace.href = url;
-        enlace.download = documento.nombre || `${nodo.codigo}.pdf`; // con "download" se guarda en lugar de abrir
+        enlace.download = documento.nombre || `${nodo.codigo}.pdf`;
+        //simulacion de click para la descarga
         document.body.append(enlace);
         enlace.click();
         enlace.remove();
@@ -291,6 +292,7 @@ async function descargarPdf(nodo, boton) {
     }
 }
 
+//plegar y desplegar los convenios
 async function alternar(id) {
     if (abiertos.has(id)) {
         abiertos.delete(id);
@@ -337,7 +339,7 @@ function crearTarjeta(nodo, huerfanoDe = null) {
     return tarjeta;
 }
 
-// Recursiva: cada nodo dibuja a sus hijos de esta página (solo si está desplegado)
+// cada nodo dibuja sus hijos, si esta abierto
 function crearNodo(nodo, huerfanoDe = null) {
     const envoltorio = crearElemento("div", "nodo-arbol");
     envoltorio.append(crearTarjeta(nodo, huerfanoDe));
@@ -369,8 +371,8 @@ function pintarArbol() {
     dibujarPaginacion(document.getElementById("paginacion"), { pagina, totalPaginas: totalPaginas() }, irAPagina);
 }
 
-// ---------- Resumen y arranque ----------
-
+/*Resumen y arranque */
+//contadores
 async function cargarResumen() {
     try {
         const r = await obtenerResumen();
@@ -379,9 +381,9 @@ async function cargarResumen() {
         document.getElementById("num-tramite").textContent = r.enTramite;
         document.getElementById("num-porVencer").textContent = r.porVencer;
         document.getElementById("num-vencidos").textContent = r.vencidos;
-    } catch { /* si falla, los números quedan en "—" y el árbol sigue funcionando */ }
+    } catch { }//si falla los contadores quedan en "-"
 }
-
+//las unidades para el filtro
 async function cargarUnidades() {
     try {
         const selector = document.getElementById("unidadId");
@@ -395,10 +397,9 @@ async function iniciar() {
     dibujarLayout("convenios");
     const usuario = obtenerUsuario();
 
-    // Administración y Gestión crean convenios; Consulta no
     if (!esConsulta(usuario.rol)) document.getElementById("botonCrear").hidden = false;
 
-    // Las unidades hay que cargarlas ANTES de aplicar la URL, o ?unidadId= no encontraría su opción
+    // Las unidades hay que cargarlas ANTES de aplicar la URL
     if (usuario.rol === "ADMINISTRACION") await cargarUnidades();
     else document.getElementById("campoUnidad").remove();
 

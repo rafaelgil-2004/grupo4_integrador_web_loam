@@ -1,11 +1,8 @@
-// Página: usuarios.html (listado con búsqueda por nombre y filtro por rol)
-// Solo Administración. Alta y edición: usuario-form.html. Activar/desactivar: acá, con confirmación.
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { listarUsuarios, cambiarActivoUsuario } from "../api.js";
 import { dibujarLayout, mostrarAlerta, limpiarAlerta } from "../ui.js";
 import { crearElemento, parametroUrl } from "../utils.js";
 
-// Rol de la API → [grupo, detalle]. Se muestra como "Consulta · Docente".
 const ROLES = {
     ADMINISTRACION: ["Administración", "Administración"],
     GESTION:        ["Gestión", "Gestión"],

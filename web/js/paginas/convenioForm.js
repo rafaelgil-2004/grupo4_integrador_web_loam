@@ -18,16 +18,14 @@ const idPadreAdenda = parametroUrl("padre");
 const creandoAdenda = !editando && idPadreAdenda !== null;
 let padreAdenda = null;
 
-let tipoActual = null;   // "MARCO" | "ESPECIFICO" (al crear)
+let tipoActual = null;
 let modalTipo;
-let convenio = null;     // al editar: lo que devolvió la API
+let convenio = null; 
 let usuarioSesion;
-let candidatosFirmantes = []; // usuarios de consulta activos
+let candidatosFirmantes = []; 
 
 const tipoEfectivo = () => (editando ? (convenio.tipo === "MARCO" ? "MARCO" : "ESPECIFICO") : tipoActual);
 const valorDe = (nombre) => campo((tipoEfectivo() === "MARCO" ? "m-" : "e-") + nombre);
-
-// ---------- Piezas del formulario ----------
 
 function dibujarFirmantes(contenedor, usuarios, { marcados = [], deshabilitado = false } = {}) {
     contenedor.replaceChildren();
