@@ -1,8 +1,12 @@
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerArbol, obtenerConvenio, obtenerResumen, listarUnidades,
          listarDocumentos, descargarDocumento } from "../api.js";
-import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
+import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, dibujarPaginacion, NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
 import { formatearFecha, crearElemento } from "../utils.js";
+
+
+// Convenios por página (se cuentan todos: marcos y específicos)
+const POR_PAGINA = 10;
 
 //lista de filtros que se envia a la api
 const CAMPOS = ["q", "tipo", "subtipo", "estado", "unidadId", "anioFirma", "vigencia"];
@@ -25,6 +29,9 @@ let ultimaBusqueda = 0;//contador para evitar problemas con multiples busquedas
 let nodosActuales = [];//arbol de documentos que se muestra en pantalla
 let abiertos = new Set();//id de los ocnvenios desplegados
 let detalles = new Map();//informacion completa del combenio
+let planos = [];                 // todos los convenios en orden de árbol: { nodo, padre }
+let vista = { raices: [], hijosDe: new Map() }; // lo que se dibuja en la página actual
+let pagina = 0;                  // página mostrada (empieza en 0)
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
 
@@ -75,22 +82,38 @@ function soloConvenios(nodos) {
         .map((n) => ({ ...n, hijos: soloConvenios(n.hijos ?? []) }));
 }
 
-//arbol a lista plana
-function aplanar(nodos) {
-    return nodos.flatMap((n) => [n, ...aplanar(n.hijos)]);
+// Marco, sus específicos, siguiente marco... Cada convenio recuerda de quién cuelga.
+function aplanarConPadre(nodos, padre = null) {
+    return nodos.flatMap((n) => [{ nodo: n, padre }, ...aplanarConPadre(n.hijos, n)]);
 }
 
-//largo de la lista
-function contar(nodos) {
-    return aplanar(nodos).length;
+const totalPaginas = () => Math.ceil(planos.length / POR_PAGINA);
+
+// Arma lo que se ve en la página actual: los convenios cuyo marco está en la misma página se
+// muestran dentro de él; si su marco quedó en otra página, aparecen sueltos con una nota
+function armarVista() {
+    const enPagina = planos.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA);
+    const ids = new Set(enPagina.map((e) => e.nodo.id));
+    const hijosDe = new Map();
+    const raices = [];
+    for (const { nodo, padre } of enPagina) {
+        if (padre && ids.has(padre.id)) {
+            if (!hijosDe.has(padre.id)) hijosDe.set(padre.id, []);
+            hijosDe.get(padre.id).push(nodo);
+        } else {
+            raices.push({ nodo, huerfanoDe: padre });
+        }
+    }
+    vista = { raices, hijosDe };
 }
 
-//detalle de cada convenio (firmas, fechas, partes) para armar las etiquetas
+// Pide el detalle (firmas, fechas, partes) solo de los convenios que todavía no se tienen:
+// los de la página al mostrarla y los hijos de un marco cuando se lo despliega
 async function cargarDetalles(nodos) {
-    detalles = new Map();
-    const pedidos = await Promise.allSettled(aplanar(nodos).map((n) => obtenerConvenio(n.id)));
+    const faltan = nodos.filter((n) => !detalles.has(n.id));
+    const pedidos = await Promise.allSettled(faltan.map((n) => obtenerConvenio(n.id)));
     pedidos.forEach((p, i) => {
-        if (p.status === "fulfilled") detalles.set(aplanar(nodos)[i].id, p.value);
+        if (p.status === "fulfilled") detalles.set(faltan[i].id, p.value);
     });
 }
 
@@ -105,10 +128,15 @@ async function buscar() {
     //pide el arbol y carga los detalles
     try {
         const nodos = soloConvenios(await obtenerArbol(filtros));
-        await cargarDetalles(nodos);
         if (numero !== ultimaBusqueda) return;
         nodosActuales = nodos;
-        abiertos = new Set(nodos.map((n) => n.id)); // los marcos se muestran abiertos
+        planos = aplanarConPadre(nodos);
+        detalles = new Map();
+        abiertos = new Set(); // al buscar, todo queda cerrado
+        pagina = 0;
+        armarVista();
+        await cargarDetalles(vista.raices.map((r) => r.nodo));
+        if (numero !== ultimaBusqueda) return;
         pintarArbol();
     } catch (error) {
         if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
@@ -117,7 +145,23 @@ async function buscar() {
     }
 }
 
-//spinner de carga
+async function irAPagina(destino) {
+    const numero = ++ultimaBusqueda;
+    pagina = destino;
+    armarVista();
+    marcarCargando(true);
+    try {
+        await cargarDetalles(vista.raices.map((r) => r.nodo));
+        if (numero !== ultimaBusqueda) return;
+        pintarArbol();
+        resultados.scrollIntoView({ block: "start" });
+    } catch (error) {
+        if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
+    } finally {
+        if (numero === ultimaBusqueda) marcarCargando(false);
+    }
+}
+
 function marcarCargando(cargando) {
     resultados.setAttribute("aria-busy", String(cargando));
     mostrar(document.getElementById("cargando"), cargando);
@@ -247,14 +291,19 @@ async function descargarPdf(nodo, boton) {
     }
 }
 
-function alternar(id) {
-    if (abiertos.has(id)) abiertos.delete(id); else abiertos.add(id);
+async function alternar(id) {
+    if (abiertos.has(id)) {
+        abiertos.delete(id);
+    } else {
+        abiertos.add(id);
+        await cargarDetalles(vista.hijosDe.get(id) ?? []); // los hijos se muestran recién ahora
+    }
     pintarArbol();
     // Al redibujar se pierde el foco: se devuelve al mismo botón
     document.querySelector(`[data-convenio="${id}"]`)?.focus();
 }
 
-function crearTarjeta(nodo) {
+function crearTarjeta(nodo, huerfanoDe = null) {
     const c = detalles.get(nodo.id);
     const abierto = abiertos.has(nodo.id);
     const idCuerpo = `cuerpo-${nodo.id}`;
@@ -269,7 +318,8 @@ function crearTarjeta(nodo) {
     const flecha = crearElemento("span", "tc-flecha", "▾");
     flecha.setAttribute("aria-hidden", "true");
     const textos = crearElemento("span");
-    textos.append(crearElemento("span", "tc-nombre", nodo.titulo), crearElemento("span", "tc-codigo", nodo.codigo));
+    const codigo = huerfanoDe ? `${nodo.codigo} · Pertenece a ${huerfanoDe.codigo}` : nodo.codigo;
+    textos.append(crearElemento("span", "tc-nombre", nodo.titulo), crearElemento("span", "tc-codigo", codigo));
     titulo.append(flecha, textos);
     titulo.addEventListener("click", () => alternar(nodo.id));
 
@@ -287,26 +337,36 @@ function crearTarjeta(nodo) {
     return tarjeta;
 }
 
-// Recursiva: cada nodo dibuja a sus hijos (solo si está desplegado)
-function crearNodo(nodo) {
+// Recursiva: cada nodo dibuja a sus hijos de esta página (solo si está desplegado)
+function crearNodo(nodo, huerfanoDe = null) {
     const envoltorio = crearElemento("div", "nodo-arbol");
-    envoltorio.append(crearTarjeta(nodo));
-    if (nodo.hijos.length > 0 && abiertos.has(nodo.id)) {
+    envoltorio.append(crearTarjeta(nodo, huerfanoDe));
+    const hijos = vista.hijosDe.get(nodo.id) ?? [];
+    const enOtraPagina = nodo.hijos.length - hijos.length;
+    if (abiertos.has(nodo.id) && (hijos.length > 0 || enOtraPagina > 0)) {
         const caja = crearElemento("div", "arbol-hijos");
-        nodo.hijos.forEach((hijo) => caja.append(crearNodo(hijo)));
+        hijos.forEach((hijo) => caja.append(crearNodo(hijo)));
+        if (enOtraPagina > 0) {
+            caja.append(crearElemento("p", "nota-hijos", enOtraPagina === 1
+                ? "Otro convenio de este marco se muestra en otra página."
+                : `Otros ${enOtraPagina} convenios de este marco se muestran en otra página.`));
+        }
         envoltorio.append(caja);
     }
     return envoltorio;
 }
 
 function pintarArbol() {
-    contenedorArbol.replaceChildren(...nodosActuales.map(crearNodo));
-    const total = contar(nodosActuales);
+    contenedorArbol.replaceChildren(...vista.raices.map((r) => crearNodo(r.nodo, r.huerfanoDe)));
+    const total = planos.length;
+    const rango = totalPaginas() > 1
+        ? ` · mostrando ${pagina * POR_PAGINA + 1}-${Math.min(total, (pagina + 1) * POR_PAGINA)}` : "";
     document.getElementById("resumenResultados").textContent =
-        `${total} ${total === 1 ? "convenio encontrado" : "convenios encontrados"}`;
+        `${total} ${total === 1 ? "convenio encontrado" : "convenios encontrados"}${rango}`;
     document.getElementById("actualizado").textContent =
         `Actualizado: ${new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}`;
     mostrar(document.getElementById("sinResultados"), total === 0);
+    dibujarPaginacion(document.getElementById("paginacion"), { pagina, totalPaginas: totalPaginas() }, irAPagina);
 }
 
 // ---------- Resumen y arranque ----------

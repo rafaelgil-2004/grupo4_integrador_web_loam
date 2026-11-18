@@ -150,22 +150,8 @@ function pintarTabla() {
 
 // ---------- Filtro por rol ----------
 
-function dibujarMenuRoles() {
-    const opciones = [["", "Todos los roles"], ...Object.entries(ROLES).map(([clave, [, detalle]]) => [clave, detalle])];
-    document.getElementById("menuRoles").replaceChildren(...opciones.map(([clave, texto]) => {
-        const boton = crearElemento("button", `dropdown-item${clave === rolElegido ? " active" : ""}`, texto);
-        boton.type = "button";
-        boton.addEventListener("click", () => elegirRol(clave, texto));
-        const item = crearElemento("li");
-        item.append(boton);
-        return item;
-    }));
-}
-
-function elegirRol(clave, texto) {
-    rolElegido = clave;
-    document.getElementById("textoFiltroRol").textContent = clave ? `Rol: ${texto}` : "Filtrar por rol";
-    dibujarMenuRoles();
+function aplicarFiltros() {
+    rolElegido = formulario.elements.rol.value;
     cargar();
 }
 
@@ -175,7 +161,6 @@ function iniciar() {
     // La API solo deja entrar a Administración; acá se evita mostrar una pantalla que fallaría
     if (obtenerUsuario()?.rol !== "ADMINISTRACION") { location.replace("convenios.html"); return; }
     dibujarLayout("usuarios");
-    dibujarMenuRoles();
     modalActivo = new bootstrap.Modal(document.getElementById("modalActivo"));
     document.getElementById("confirmarActivo").addEventListener("click", confirmarCambio);
 
@@ -186,7 +171,8 @@ function iniciar() {
         history.replaceState(null, "", location.pathname);
     }
 
-    formulario.addEventListener("submit", (evento) => { evento.preventDefault(); cargar(); });
+    formulario.addEventListener("submit", (evento) => { evento.preventDefault(); aplicarFiltros(); });
+    document.getElementById("botonLimpiar").addEventListener("click", () => { formulario.reset(); aplicarFiltros(); });
     // Mientras escribe, filtra lo ya cargado (sin pedir nada al servidor)
     document.getElementById("q").addEventListener("input", pintarTabla);
     cargar(Boolean(resultado));

@@ -20,13 +20,10 @@ const ESTADOS = {
     RESCINDIDO: { texto: "Rescindido", clase: "text-bg-danger" },
     ARCHIVADO:  { texto: "Archivado",  clase: "text-bg-dark" },
 };
-export const ORDEN_ESTADOS = Object.keys(ESTADOS);
-export const nombreEstado = (estado) => ESTADOS[estado]?.texto ?? estado;
-
 export function badgeEstado(estado) {
     const badge = document.createElement("span");
     badge.className = `badge ${ESTADOS[estado]?.clase ?? "text-bg-light"}`;
-    badge.textContent = nombreEstado(estado);
+    badge.textContent = ESTADOS[estado]?.texto ?? estado;
     return badge;
 }
 
@@ -114,6 +111,43 @@ export function badgeVigencia(vigencia) {
     return crearElemento("span", `badge ${datos?.clase ?? "text-bg-light"}`, datos?.texto ?? vigencia);
 }
 
+// Paginador de texto: "Inicio  Anterior  1 2 3 ... 10  Siguiente  Final".
+// Los enlaces de ir hacia atrás o adelante solo aparecen si hay a dónde ir.
+// "pagina" empieza en 0; "alCambiar" recibe la página elegida.
+export function dibujarPaginacion(contenedor, { pagina, totalPaginas }, alCambiar) {
+    contenedor.replaceChildren();
+    if (totalPaginas <= 1) return;
+
+    const enlace = (texto, destino, etiqueta) => {
+        const boton = crearElemento("button", "pag-enlace", texto);
+        boton.type = "button";
+        boton.setAttribute("aria-label", etiqueta ?? `Página ${texto}`);
+        boton.addEventListener("click", () => alCambiar(destino));
+        return boton;
+    };
+
+    const fila = crearElemento("div", "paginacion");
+    if (pagina > 0) fila.append(enlace("Inicio", 0, "Primera página"), enlace("Anterior", pagina - 1, "Página anterior"));
+
+    // Ventana de hasta 10 números centrada en la página actual
+    const desde = Math.max(0, Math.min(pagina - 4, totalPaginas - 10));
+    const hasta = Math.min(totalPaginas, desde + 10);
+    for (let i = desde; i < hasta; i++) {
+        if (i === pagina) {
+            const actual = crearElemento("span", "pag-actual", String(i + 1));
+            actual.setAttribute("aria-current", "page");
+            fila.append(actual);
+        } else {
+            fila.append(enlace(String(i + 1), i));
+        }
+    }
+
+    if (pagina < totalPaginas - 1) fila.append(enlace("Siguiente", pagina + 1, "Página siguiente"), enlace("Final", totalPaginas - 1, "Última página"));
+    contenedor.append(fila);
+}
+
+// Vuelve a la página anterior solo si viene de este mismo sitio (document.referrer);
+// si el usuario llegó con un enlace directo, history.back() lo sacaría de la aplicación
 export function volverAtras(urlRespaldo = "convenios.html") {
     const vieneDelSitio = document.referrer && new URL(document.referrer).origin === location.origin;
     if (vieneDelSitio) history.back();

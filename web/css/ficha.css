@@ -31,21 +31,13 @@ main.container { max-width: 960px; }
 .list-group { border-radius: 0; }
 .list-group-item { background: #fff; border-color: #e6e6e6; border-radius: 0 !important; font-size: .78rem; }
 
-/* Etiquetas y botones sin redondeo, con los colores del sitio */
+/* Etiquetas sin redondeo */
 .badge { border-radius: 0; font-weight: 700; }
-.btn-outline-secondary {
-    --bs-btn-color: var(--gris-titulo); --bs-btn-border-color: #9a9a9a;
-    --bs-btn-hover-color: var(--naranja-hover); --bs-btn-hover-bg: #fff; --bs-btn-hover-border-color: var(--naranja-hover);
-    --bs-btn-active-color: var(--naranja-hover); --bs-btn-active-bg: #fff; --bs-btn-active-border-color: var(--naranja-hover);
-    font-weight: 700;
-}
-.btn-sm { font-size: .68rem; padding: .2rem .6rem; }
 
 /* Campos como en los formularios */
 .tab-content .form-control, .tab-content .form-select { border: 1px solid #8f8f8f; border-radius: 0; font-size: .8rem; }
 .tab-content .form-control:focus { border-color: var(--naranja); box-shadow: 0 0 0 .2rem rgba(242, 103, 34, .25); }
-.visor-pdf { border-radius: 0; }
-.tab-content .card, .tab-content .rounded, .tab-content .border { border-radius: 0 !important; }
+.tab-content .rounded, .tab-content .border { border-radius: 0 !important; }
 
 /* Aviso de estado: dice qué falta (datos o firmas). El texto va siempre escrito; el color solo refuerza. */
 .aviso-estado { background: #fff; border-left: 4px solid #9a9a9a; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); padding: .7rem .9rem; margin-bottom: 1rem; font-size: .8rem; color: var(--gris-titulo); }
@@ -55,9 +47,13 @@ main.container { max-width: 960px; }
 .aviso-estado.firmado { border-left-color: #2e7d32; }
 .aviso-estado.cerrado { border-left-color: #b3261e; }
 
-/* Ventana de confirmación */
-.modal-confirmar .modal-dialog { max-width: 440px; }
-.modal-confirmar .modal-content { border: 0; border-radius: 0; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
-.modal-confirmar h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .25rem; color: var(--gris-titulo); }
-.modal-confirmar p { font-size: .8rem; margin: 0 0 1rem; }
-.acciones-modal { display: flex; justify-content: flex-end; gap: .5rem; }
+/* Acciones de la cabecera (Editar, Aceptar convenio): mismo alto y texto centrado en cada botón */
+#acciones .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.3rem;
+    padding: .45rem 1rem;
+    font-size: .8rem;
+    line-height: 1.2;
+}

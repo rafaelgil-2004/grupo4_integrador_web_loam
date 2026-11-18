@@ -160,19 +160,45 @@ body.pagina-sitio {
 /* Botón secundario blanco: su hover es el naranja secundario */
 .btn-borde { background: #fff; border: 1px solid #9a9a9a; color: var(--gris-titulo); font-weight: 700; font-size: .8rem; }
 .btn-borde:hover, .btn-borde:focus-visible, .btn-borde.show { background: #fff; border-color: var(--naranja-hover); color: var(--naranja-hover); }
-.btn-chico { font-size: .72rem; padding: .3rem .75rem; }
+/* Tamaño único: botones chicos (Descargar PDF, Ver historial, Editar, Activar...) y etiquetas
+   (Borrador, tipo, Firmas, Activo...) comparten fuente, relleno, borde y alto */
+.btn-chico, .etiqueta {
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: .3rem .75rem;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 0;
+    white-space: nowrap;
+}
+
+/* Etiquetas de estado: el texto va siempre escrito, el color solo refuerza */
+.etiqueta { display: inline-block; border-color: #c9c9c9; background: #fff; color: var(--gris-titulo); }
+.etiqueta.ok { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
+.etiqueta.espera { border-color: #c8a400; background: #fff8d6; color: #5f4b00; }
+.etiqueta.alerta { border-color: #b3261e; background: #fdeceb; color: #8c1d18; }
 
 /* ---------- Botones sin bordes redondeados (todos) ---------- */
-.btn, .btn-sm, .btn-lg, .btn-convenios, .btn-borde, .btn-principal, .page-link, .boton-usuario, .opcion-tipo {
+.btn, .btn-convenios, .btn-borde, .boton-usuario, .opcion-tipo {
     --bs-btn-border-radius: 0;
-    --bs-pagination-border-radius: 0;
     border-radius: 0;
 }
-.pagination .page-item:first-child .page-link,
-.pagination .page-item:last-child .page-link { border-radius: 0; }
-.barra-busqueda .btn { border-radius: 0; }
 
-/* ---------- Tablas con fondo blanco (ficha del convenio: firmantes, historial, etc.) ---------- */
-.table { --bs-table-bg: #fff; background-color: #fff; }
-.tab-content { background-color: #fff; }
-.nav-tabs .nav-link, .tab-content.rounded-bottom { border-radius: 0 !important; }
+/* ---------- Panel de filtros y línea de resultados (convenios y usuarios) ---------- */
+.panel-filtros { background: #fff; padding: 1rem; margin-bottom: .75rem; }
+.panel-filtros .form-label { font-size: .75rem; font-weight: 700; color: var(--gris-titulo); margin-bottom: .2rem; }
+.linea-resultados { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .75rem; padding-bottom: .5rem; margin-bottom: 1rem; border-bottom: 1px solid #b9b9b9; }
+
+/* ---------- Ventana de confirmación (ficha del convenio y usuarios) ---------- */
+.modal-confirmar .modal-dialog { max-width: 440px; }
+.modal-confirmar .modal-content { border: 0; border-radius: 0; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
+.modal-confirmar h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .25rem; color: var(--gris-titulo); }
+.modal-confirmar p { font-size: .8rem; margin: 0 0 1rem; }
+.acciones-modal { display: flex; justify-content: flex-end; gap: .5rem; }
+
+/* ---------- Paginador de texto (Inicio, Anterior, 1 2 3, Siguiente, Final) ---------- */
+.paginacion { display: flex; justify-content: center; align-items: baseline; gap: .65rem; flex-wrap: wrap; margin-top: 1.25rem; font-size: .8rem; }
+.pag-enlace { background: none; border: 0; padding: 0; font: inherit; color: var(--bordo); cursor: pointer; }
+.pag-enlace:hover, .pag-enlace:focus-visible { color: var(--naranja-hover); text-decoration: underline; }
+.pag-actual { color: #525252; }

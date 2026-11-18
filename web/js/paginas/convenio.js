@@ -312,12 +312,12 @@ async function guardarDocumento(documento, boton) {
 }
 
 function crearItemDocumento(d) {
-    const botonVer = crearElemento("button", "btn btn-sm btn-outline-secondary", "Ver");
+    const botonVer = crearElemento("button", "btn btn-borde btn-chico", "Ver");
     botonVer.type = "button";
     botonVer.setAttribute("aria-label", `Ver ${d.nombre}`);
     botonVer.addEventListener("click", () => verDocumento(d, botonVer));
 
-    const botonBajar = crearElemento("button", "btn btn-sm btn-outline-secondary", "Descargar");
+    const botonBajar = crearElemento("button", "btn btn-borde btn-chico", "Descargar");
     botonBajar.type = "button";
     botonBajar.setAttribute("aria-label", `Descargar ${d.nombre}`);
     botonBajar.addEventListener("click", () => guardarDocumento(d, botonBajar));

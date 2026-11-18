@@ -24,7 +24,7 @@
         </div>
 
         <div id="contenido" class="d-none">
-            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                 <div>
                     <p class="mb-0 text-body-secondary" id="codigo"></p>
                     <h1 class="h3 titulo mb-2" id="titulo"></h1>
@@ -93,7 +93,7 @@
                         <label for="archivoPdf" class="form-label">Adjuntar un PDF (hasta 20 MB)</label>
                         <div class="input-group">
                             <input type="file" class="form-control" id="archivoPdf" accept="application/pdf,.pdf">
-                            <button class="btn btn-principal" type="submit" id="botonSubir">Subir</button>
+                            <button class="btn btn-convenios" type="submit" id="botonSubir">Subir</button>
                         </div>
                         <div class="form-text" id="avisoSubida"></div>
                     </form>
@@ -107,7 +107,7 @@
                     <form id="formularioObservacion" novalidate>
                         <label for="textoObservacion" class="form-label">Nueva observación</label>
                         <textarea class="form-control mb-2" id="textoObservacion" rows="3" maxlength="1000"></textarea>
-                        <button type="submit" class="btn btn-principal" id="botonObservar">Enviar</button>
+                        <button type="submit" class="btn btn-convenios" id="botonObservar">Enviar</button>
                     </form>
                 </div>
 
@@ -154,7 +154,7 @@
         </div>
     </div>
 
-    <footer id="pie" class="pie"></footer>
+    <footer id="pie"></footer>
 
     <script src="../recursos/bootstrap/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/paginas/convenio.js"></script>
