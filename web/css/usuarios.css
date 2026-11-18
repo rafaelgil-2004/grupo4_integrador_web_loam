@@ -11,20 +11,6 @@
     flex: 1;
 }
 
-/* Panel de filtros (igual que en convenios) */
-.panel-filtros {
-    background: #fff;
-    padding: 1rem;
-    margin-bottom: .75rem;
-}
-
-.panel-filtros .form-label {
-    font-size: .75rem;
-    font-weight: 700;
-    color: var(--gris-titulo);
-    margin-bottom: .2rem;
-}
-
 /* Tabla */
 .tabla-usuarios {
     background: #fff;
@@ -107,67 +93,4 @@
     justify-content: flex-end;
     flex-wrap: wrap;
     white-space: nowrap;
-}
-
-.tabla-usuarios .acciones-fila .btn {
-    font-size: .68rem;
-    padding: .2rem .6rem;
-}
-
-/* Ventana de confirmación */
-.modal-confirmar .modal-dialog {
-    max-width: 420px;
-}
-
-.modal-confirmar .modal-content {
-    border: 0;
-    border-radius: 0;
-    padding: 1.25rem;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, .3);
-}
-
-.modal-confirmar h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0 0 .25rem;
-    color: var(--gris-titulo);
-}
-
-.modal-confirmar p {
-    font-size: .8rem;
-    margin: 0 0 1rem;
-}
-
-.acciones-modal {
-    display: flex;
-    justify-content: flex-end;
-    gap: .5rem;
-}
-
-/* Línea con la cantidad de resultados (igual que en convenios) */
-.linea-resultados {
-    display: flex;
-    justify-content: space-between;
-    gap: .5rem;
-    flex-wrap: wrap;
-    font-size: .75rem;
-    padding-bottom: .5rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #b9b9b9;
-}
-
-/* Etiquetas de estado (mismas que en convenios) */
-.etiqueta {
-    display: inline-block;
-    border: 1px solid #c9c9c9;
-    background: #fff;
-    font-size: .68rem;
-    padding: .2rem .5rem;
-    color: var(--gris-titulo);
-}
-
-.etiqueta.ok {
-    border-color: #2e7d32;
-    background: #e8f5e9;
-    color: #1b5e20;
 }

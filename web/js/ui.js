@@ -20,17 +20,13 @@ const ESTADOS = {
     RESCINDIDO: { texto: "Rescindido", clase: "text-bg-danger" },
     ARCHIVADO:  { texto: "Archivado",  clase: "text-bg-dark" },
 };
-export const ORDEN_ESTADOS = Object.keys(ESTADOS);
-export const nombreEstado = (estado) => ESTADOS[estado]?.texto ?? estado;
-
 export function badgeEstado(estado) {
     const badge = document.createElement("span");
     badge.className = `badge ${ESTADOS[estado]?.clase ?? "text-bg-light"}`;
-    badge.textContent = nombreEstado(estado);
+    badge.textContent = ESTADOS[estado]?.texto ?? estado;
     return badge;
 }
 
-//inicio
 // Encabezado con logo y usuario, menú (solo Administración) y pie
 const ENLACES = [
     { clave: "convenios", texto: "Convenios", url: "convenios.html" },
@@ -119,33 +115,34 @@ export function badgeVigencia(vigencia) {
     return crearElemento("span", `badge ${datos?.clase ?? "text-bg-light"}`, datos?.texto ?? vigencia);
 }
 
-// "pagina" es el objeto page de la respuesta: { number (desde 0), totalPages, ... }
-export function dibujarPaginacion(contenedor, { number, totalPages }, alCambiar) {
+// Contador de páginas: "Anterior" y "Siguiente" solo aparecen si hay a dónde ir.
+// "pagina" empieza en 0; "alCambiar" recibe la página elegida.
+export function dibujarPaginacion(contenedor, { pagina, totalPaginas }, alCambiar) {
     contenedor.replaceChildren();
-    if (totalPages <= 1) return;
+    if (totalPaginas <= 1) return;
 
-    const crearItem = (texto, destino, { activo = false, deshabilitado = false, etiqueta } = {}) => {
-        const li = crearElemento("li", `page-item${activo ? " active" : ""}${deshabilitado ? " disabled" : ""}`);
-        if (activo) li.setAttribute("aria-current", "page");
-        const boton = crearElemento("button", "page-link", texto);
+    const crearBoton = (clases, texto, destino, etiqueta) => {
+        const boton = crearElemento("button", clases, texto);
         boton.type = "button";
         if (etiqueta) boton.setAttribute("aria-label", etiqueta);
-        if (deshabilitado) boton.disabled = true;
-        else boton.addEventListener("click", () => alCambiar(destino));
-        li.append(boton);
-        return li;
+        boton.addEventListener("click", () => alCambiar(destino));
+        return boton;
     };
 
-    const lista = crearElemento("ul", "pagination justify-content-center mb-0");
-    lista.append(crearItem("«", number - 1, { deshabilitado: number === 0, etiqueta: "Página anterior" }));
+    const fila = crearElemento("div", "paginacion");
+    if (pagina > 0) fila.append(crearBoton("btn btn-borde btn-chico", "‹ Anterior", pagina - 1, "Página anterior"));
+
     // Ventana de hasta 5 números centrada en la página actual
-    const desde = Math.max(0, Math.min(number - 2, totalPages - 5));
-    const hasta = Math.min(totalPages, desde + 5);
+    const desde = Math.max(0, Math.min(pagina - 2, totalPaginas - 5));
+    const hasta = Math.min(totalPaginas, desde + 5);
     for (let i = desde; i < hasta; i++) {
-        lista.append(crearItem(String(i + 1), i, { activo: i === number }));
+        const numero = crearBoton(`pag-numero${i === pagina ? " activa" : ""}`, String(i + 1), i, `Página ${i + 1}`);
+        if (i === pagina) numero.setAttribute("aria-current", "page");
+        fila.append(numero);
     }
-    lista.append(crearItem("»", number + 1, { deshabilitado: number >= totalPages - 1, etiqueta: "Página siguiente" }));
-    contenedor.append(lista);
+
+    if (pagina < totalPaginas - 1) fila.append(crearBoton("btn btn-borde btn-chico", "Siguiente ›", pagina + 1, "Página siguiente"));
+    contenedor.append(fila);
 }
 
 // Vuelve a la página anterior solo si viene de este mismo sitio (document.referrer);

@@ -19,7 +19,7 @@ const alertasDocumentos = document.getElementById("alertasDocumentos");
 const alertasObservaciones = document.getElementById("alertasObservaciones");
 const alertasHistorial = document.getElementById("alertasHistorial");
 
-let convenio = null;   // lo van a usar los botones de acción (próximo paso)
+let convenio = null;   // el convenio que se está mostrando
 let urlVisor = null;
 let cantidadDocumentos = null; // null hasta que se cargan; el aviso de estado lo necesita para saber si falta el PDF
 
@@ -218,12 +218,12 @@ async function guardarDocumento(documento, boton) {
 }
 
 function crearItemDocumento(d) {
-    const botonVer = crearElemento("button", "btn btn-sm btn-outline-secondary", "Ver");
+    const botonVer = crearElemento("button", "btn btn-borde btn-chico", "Ver");
     botonVer.type = "button";
     botonVer.setAttribute("aria-label", `Ver ${d.nombre}`);
     botonVer.addEventListener("click", () => verDocumento(d, botonVer));
 
-    const botonBajar = crearElemento("button", "btn btn-sm btn-outline-secondary", "Descargar");
+    const botonBajar = crearElemento("button", "btn btn-borde btn-chico", "Descargar");
     botonBajar.type = "button";
     botonBajar.setAttribute("aria-label", `Descargar ${d.nombre}`);
     botonBajar.addEventListener("click", () => guardarDocumento(d, botonBajar));

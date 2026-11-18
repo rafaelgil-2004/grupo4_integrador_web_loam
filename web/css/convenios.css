@@ -12,12 +12,6 @@
 .dato-resumen { display: block; background: #fff; border-left: 3px solid var(--naranja); padding: .6rem .8rem; font-size: .75rem; color: var(--gris-texto); }
 .dato-resumen strong { display: block; font-size: 1.15rem; color: var(--gris-titulo); }
 
-/* Buscador y filtros */
-.panel-filtros { background: #fff; padding: 1rem; margin-bottom: .75rem; }
-.panel-filtros .form-label { font-size: .75rem; font-weight: 700; color: var(--gris-titulo); margin-bottom: .2rem; }
-
-.linea-resultados { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .75rem; padding-bottom: .5rem; margin-bottom: 1rem; border-bottom: 1px solid #b9b9b9; }
-
 /* Tarjeta de convenio */
 .tarjeta-convenio { background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); margin-bottom: .75rem; }
 .tc-cabecera { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; flex-wrap: wrap; }
@@ -28,11 +22,6 @@
 .tc-codigo { display: block; font-size: .7rem; color: var(--gris-texto); }
 .tc-etiquetas { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
 
-/* El texto va siempre escrito: el color solo refuerza */
-.etiqueta { display: inline-block; border: 1px solid #c9c9c9; background: #fff; font-size: .68rem; padding: .2rem .5rem; color: var(--gris-titulo); }
-.etiqueta.ok { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
-.etiqueta.espera { border-color: #c8a400; background: #fff8d6; color: #5f4b00; }
-.etiqueta.alerta { border-color: #b3261e; background: #fdeceb; color: #8c1d18; }
 
 .tc-cuerpo { border-top: 1px solid #e6e6e6; padding: 1rem 1rem 1.1rem; }
 .tc-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .9rem 1.5rem; margin: 0 0 1rem; }

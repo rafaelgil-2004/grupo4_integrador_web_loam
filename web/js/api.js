@@ -54,8 +54,6 @@ export const login = (mail, password) =>
 
 export const obtenerResumen = () => pedir("/dashboard/resumen");
 
-export const obtenerMovimientos = (limite = 10) => pedir(`/dashboard/movimientos?limite=${limite}`);
-
 function aParametros(filtros) {
     const parametros = new URLSearchParams();
     for (const [clave, valor] of Object.entries(filtros)) {
@@ -101,10 +99,6 @@ export const aceptarConvenio = (id) =>
 
 // Gestión recibe solo usuarios activos de consulta; Administración recibe todos
 export const listarUsuarios = (filtros = {}) => pedir(`/usuarios?${aParametros(filtros)}`);
-
-// En un convenio Aceptado la API exige el motivo; en un Borrador no hace falta
-export const eliminarDocumento = (idDocumento, motivo = null) =>
-    pedir(`/documentos/${idDocumento}${motivo ? `?motivo=${encodeURIComponent(motivo)}` : ""}`, { metodo: "DELETE" });
 
 //usuarios
 // usuarios (solo Administración)

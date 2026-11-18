@@ -2,8 +2,11 @@
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { obtenerArbol, obtenerConvenio, obtenerResumen, listarUnidades,
          listarDocumentos, descargarDocumento } from "../api.js";
-import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
+import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, dibujarPaginacion, NOMBRES_TIPO, NOMBRES_SUBTIPO } from "../ui.js";
 import { formatearFecha, crearElemento } from "../utils.js";
+
+// Cuántos convenios principales (marcos) se muestran por página; sus específicos cuelgan de cada uno
+const POR_PAGINA = 10;
 
 // Campos del formulario que viajan como filtros a la API
 const CAMPOS = ["q", "tipo", "subtipo", "estado", "unidadId", "anioFirma", "vigencia"];
@@ -23,7 +26,8 @@ const contenedorArbol = document.getElementById("arbol");
 
 let ultimaBusqueda = 0;
 let nodosActuales = [];
-let abiertos = new Set();        // ids de los convenios desplegados
+let pagina = 0;                  // página mostrada (empieza en 0)
+let abiertos = new Set();        // ids de los convenios desplegados (al iniciar, ninguno)
 let detalles = new Map();        // id → convenio completo (firmas, fechas, partes)
 
 const mostrar = (elemento, visible) => elemento.classList.toggle("d-none", !visible);
@@ -82,12 +86,17 @@ function contar(nodos) {
     return aplanar(nodos).length;
 }
 
-// Pide el detalle de cada convenio (firmas, fechas, partes) para armar las etiquetas
+// Convenios principales de la página que se está viendo
+const nodosDePagina = () => nodosActuales.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA);
+const totalPaginas = () => Math.ceil(nodosActuales.length / POR_PAGINA);
+
+// Pide el detalle (firmas, fechas, partes) solo de los convenios que todavía no se tienen:
+// los de la página al mostrarla y los hijos de un marco cuando se lo despliega
 async function cargarDetalles(nodos) {
-    detalles = new Map();
-    const pedidos = await Promise.allSettled(aplanar(nodos).map((n) => obtenerConvenio(n.id)));
+    const faltan = nodos.filter((n) => !detalles.has(n.id));
+    const pedidos = await Promise.allSettled(faltan.map((n) => obtenerConvenio(n.id)));
     pedidos.forEach((p, i) => {
-        if (p.status === "fulfilled") detalles.set(aplanar(nodos)[i].id, p.value);
+        if (p.status === "fulfilled") detalles.set(faltan[i].id, p.value);
     });
 }
 
@@ -100,11 +109,30 @@ async function buscar() {
     marcarCargando(true);
     try {
         const nodos = soloConvenios(await obtenerArbol(filtros));
-        await cargarDetalles(nodos);
         if (numero !== ultimaBusqueda) return;
         nodosActuales = nodos;
-        abiertos = new Set(nodos.map((n) => n.id)); // los marcos (raíces) se muestran abiertos
+        detalles = new Map();
+        abiertos = new Set(); // al buscar, todo queda cerrado
+        pagina = 0;
+        await cargarDetalles(nodosDePagina());
+        if (numero !== ultimaBusqueda) return;
         pintarArbol();
+    } catch (error) {
+        if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
+    } finally {
+        if (numero === ultimaBusqueda) marcarCargando(false);
+    }
+}
+
+async function irAPagina(destino) {
+    const numero = ++ultimaBusqueda;
+    pagina = destino;
+    marcarCargando(true);
+    try {
+        await cargarDetalles(nodosDePagina());
+        if (numero !== ultimaBusqueda) return;
+        pintarArbol();
+        resultados.scrollIntoView({ block: "start" });
     } catch (error) {
         if (numero === ultimaBusqueda) mostrarAlerta(alertas, error.message);
     } finally {
@@ -235,8 +263,14 @@ async function descargarPdf(nodo, boton) {
     }
 }
 
-function alternar(id) {
-    if (abiertos.has(id)) abiertos.delete(id); else abiertos.add(id);
+async function alternar(id) {
+    if (abiertos.has(id)) {
+        abiertos.delete(id);
+    } else {
+        abiertos.add(id);
+        const nodo = aplanar(nodosActuales).find((n) => n.id === id);
+        if (nodo) await cargarDetalles(nodo.hijos); // los hijos se muestran recién ahora
+    }
     pintarArbol();
     // Al redibujar se pierde el foco: se devuelve al mismo botón
     document.querySelector(`[data-convenio="${id}"]`)?.focus();
@@ -288,13 +322,14 @@ function crearNodo(nodo) {
 }
 
 function pintarArbol() {
-    contenedorArbol.replaceChildren(...nodosActuales.map(crearNodo));
+    contenedorArbol.replaceChildren(...nodosDePagina().map(crearNodo));
     const total = contar(nodosActuales);
     document.getElementById("resumenResultados").textContent =
         `${total} ${total === 1 ? "convenio encontrado" : "convenios encontrados"}`;
     document.getElementById("actualizado").textContent =
         `Actualizado: ${new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}`;
     mostrar(document.getElementById("sinResultados"), total === 0);
+    dibujarPaginacion(document.getElementById("paginacion"), { pagina, totalPaginas: totalPaginas() }, irAPagina);
 }
 
 // ---------- Resumen y arranque ----------
