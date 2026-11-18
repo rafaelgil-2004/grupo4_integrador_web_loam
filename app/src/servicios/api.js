@@ -81,15 +81,17 @@ export const obtenerObservaciones = (id) => pedir(`/convenios/${id}/observacione
 export const agregarObservacion = (id, texto) =>
     pedir(`/convenios/${id}/observaciones`, { metodo: "POST", cuerpo: { texto } });
 
-export async function firmar(convenioId, { latitud, longitud, uriImagen }) {
+// Subida multipart por el módulo nativo. fetch+FormData con archivos locales falla en Android
+// (el mismo problema que tuvimos con la firma), por eso se usa uploadAsync.
+async function subirArchivo(ruta, uri, { campo, tipoMime, parametros, mensajeError }) {
     let r;
     try {
-        r = await FileSystem.uploadAsync(`${obtenerApiUrl()}/convenios/${convenioId}/firmas`, uriImagen, {
+        r = await FileSystem.uploadAsync(`${obtenerApiUrl()}${ruta}`, uri, {
             httpMethod: "POST",
             uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-            fieldName: "imagen",
-            mimeType: "image/svg+xml",
-            parameters: { latitud: String(latitud), longitud: String(longitud) },
+            fieldName: campo,
+            mimeType: tipoMime,
+            parameters: parametros,
             headers: { Authorization: `Bearer ${tokenActual}`, Accept: "application/json" },
         });
     } catch {
@@ -97,9 +99,24 @@ export async function firmar(convenioId, { latitud, longitud, uriImagen }) {
     }
     let cuerpo = null;
     try { cuerpo = JSON.parse(r.body); } catch {}
-    if (r.status < 200 || r.status >= 300) throw new Error(cuerpo?.mensaje ?? `Error ${r.status} al registrar la firma.`);
+    if (r.status === 401) alVencerSesion?.();
+    if (r.status < 200 || r.status >= 300) throw new Error(cuerpo?.mensaje ?? `Error ${r.status} ${mensajeError}`);
     return cuerpo;
 }
+
+export const firmar = (convenioId, { latitud, longitud, uriImagen }) =>
+    subirArchivo(`/convenios/${convenioId}/firmas`, uriImagen, {
+        campo: "imagen", tipoMime: "image/svg+xml",
+        parametros: { latitud: String(latitud), longitud: String(longitud) },
+        mensajeError: "al registrar la firma.",
+    });
+
+// El servidor valida que sea PDF, le estampa la marca y guarda el SHA-256
+export const subirDocumento = (convenioId, uriPdf) =>
+    subirArchivo(`/convenios/${convenioId}/documentos`, uriPdf, {
+        campo: "archivo", tipoMime: "application/pdf",
+        mensajeError: "al subir el documento.",
+    });
 
 //buscar
 const aParametros = (filtros) => Object.entries(filtros)

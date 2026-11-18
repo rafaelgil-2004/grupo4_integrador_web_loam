@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, Share, TextInput, View, Pressable } from
 import { useFocusEffect } from "@react-navigation/native";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
-import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion } from "../servicios/api";
+import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, subirDocumento } from "../servicios/api";
 import { formatearFecha, formatearFechaHora } from "../utilidades";
 import { radio } from "../tema";
 import { useAutenticacion } from "../contexto/ContextoAutenticacion";
@@ -11,6 +11,7 @@ import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import Insignia from "../componentes/atomos/Insignia";
 import AvisoSinConexion from "../componentes/moleculas/AvisoSinConexion";
+import * as DocumentPicker from "expo-document-picker";
 
 function Seccion({ titulo, children }) {
     return (
@@ -36,6 +37,8 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
     const [comentario, setComentario] = useState("");
     const [error, setError] = useState(null);
     const [enviando, setEnviando] = useState(false);
+    const [subiendo, setSubiendo] = useState(false);
+    const [mensajeSubida, setMensajeSubida] = useState(null);
     const { usuario } = useAutenticacion();
     const puedeFirmar = !!convenio && convenio.estado === "ACEPTADO" &&
     convenio.listaImplicados?.some((f) => f.usuarioId === usuario.id && !f.firmado);
@@ -62,6 +65,27 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
             setObservaciones(await obtenerObservaciones(id));
         } catch (e) { setError(e.message); }
         setEnviando(false);
+    }
+
+    async function elegirYSubirPdf() {
+        setMensajeSubida(null);
+        // copyToCacheDirectory: sin esto Android entrega un content:// que uploadAsync no puede leer
+        const r = await DocumentPicker.getDocumentAsync({ type: "application/pdf", copyToCacheDirectory: true });
+        if (r.canceled) return;
+        const archivo = r.assets[0];
+        if (!archivo.name.toLowerCase().endsWith(".pdf")) {
+            setMensajeSubida("Solo se pueden subir archivos PDF.");
+            return;
+        }
+        setSubiendo(true);
+        try {
+            await subirDocumento(id, archivo.uri);
+            setDocumentos(await obtenerDocumentos(id));
+            setMensajeSubida("Documento subido. El servidor le agregó la marca de control.");
+        } catch (e) {
+            setMensajeSubida(e.message);
+        }
+        setSubiendo(false);
     }
 
     // Comparte texto plano con el selector nativo (mail, WhatsApp, etc.)
@@ -126,8 +150,15 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
                         <Texto variante="pequenio" color="textoSuave">
                             Subido por {d.subidoPorNombre} · {formatearFechaHora(d.fechaCarga)}
                         </Texto>
+                        {d.sha256 ? <Texto variante="pequenio" color="textoSuave">SHA-256: {d.sha256.slice(0, 16)}…</Texto> : null}
                     </Pressable>
                 )) : <Texto color="textoSuave">Sin documentos.</Texto>}
+            
+                <View style={{ marginTop: 8 }}>
+                    <Boton texto={subiendo ? "Subiendo..." : "Subir documento (PDF)"} variante="secundario"
+                        onPress={elegirYSubirPdf} deshabilitado={subiendo || !estaConectado} />
+                </View>
+                {mensajeSubida ? <Texto variante="pequenio" color="textoSuave">{mensajeSubida}</Texto> : null}
             </Seccion>
 
             <Seccion titulo="Comentarios">

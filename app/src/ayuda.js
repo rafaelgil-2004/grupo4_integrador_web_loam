@@ -28,6 +28,7 @@ export const MANUAL = [
     ] },
     { icono: "chatbubble-outline", titulo: "Comentar un convenio", pasos: [
         { texto: "Abra el convenio, vaya a la sección Comentarios, escriba su mensaje y toque “Comentar”." },
+        { texto: "Para adjuntar documentación, abra el convenio y pulse «Subir documento (PDF)». Solo se admiten archivos PDF; el sistema les agrega una marca de control con fecha, usuario y huella digital." }
     ] },
     { icono: "cloud-offline-outline", titulo: "Sin conexión", pasos: [
         { texto: "Sin internet aparece un aviso rojo. Puede ver los convenios pendientes de firma guardados la última vez." },
