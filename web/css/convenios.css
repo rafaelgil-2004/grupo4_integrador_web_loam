@@ -40,3 +40,4 @@
 .arbol-hijos { margin-left: 1.75rem; padding-left: 1rem; border-left: 2px solid #b9b9b9; }
 .arbol-hijos > .nodo-arbol > .tarjeta-convenio { position: relative; }
 .arbol-hijos > .nodo-arbol > .tarjeta-convenio::before { content: ""; position: absolute; left: -1rem; top: 1.5rem; width: 1rem; border-top: 2px solid #b9b9b9; }
+.nota-hijos { margin: 0 0 .75rem; font-size: .72rem; color: var(--gris-texto); }

@@ -46,3 +46,14 @@ main.container { max-width: 960px; }
 .aviso-estado.aceptado { border-left-color: var(--naranja); }
 .aviso-estado.firmado { border-left-color: #2e7d32; }
 .aviso-estado.cerrado { border-left-color: #b3261e; }
+
+/* Acciones de la cabecera (Editar, Aceptar convenio): mismo alto y texto centrado en cada botón */
+#acciones .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.3rem;
+    padding: .45rem 1rem;
+    font-size: .8rem;
+    line-height: 1.2;
+}

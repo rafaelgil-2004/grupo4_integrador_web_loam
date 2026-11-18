@@ -115,33 +115,38 @@ export function badgeVigencia(vigencia) {
     return crearElemento("span", `badge ${datos?.clase ?? "text-bg-light"}`, datos?.texto ?? vigencia);
 }
 
-// Contador de páginas: "Anterior" y "Siguiente" solo aparecen si hay a dónde ir.
+// Paginador de texto: "Inicio  Anterior  1 2 3 ... 10  Siguiente  Final".
+// Los enlaces de ir hacia atrás o adelante solo aparecen si hay a dónde ir.
 // "pagina" empieza en 0; "alCambiar" recibe la página elegida.
 export function dibujarPaginacion(contenedor, { pagina, totalPaginas }, alCambiar) {
     contenedor.replaceChildren();
     if (totalPaginas <= 1) return;
 
-    const crearBoton = (clases, texto, destino, etiqueta) => {
-        const boton = crearElemento("button", clases, texto);
+    const enlace = (texto, destino, etiqueta) => {
+        const boton = crearElemento("button", "pag-enlace", texto);
         boton.type = "button";
-        if (etiqueta) boton.setAttribute("aria-label", etiqueta);
+        boton.setAttribute("aria-label", etiqueta ?? `Página ${texto}`);
         boton.addEventListener("click", () => alCambiar(destino));
         return boton;
     };
 
     const fila = crearElemento("div", "paginacion");
-    if (pagina > 0) fila.append(crearBoton("btn btn-borde btn-chico", "‹ Anterior", pagina - 1, "Página anterior"));
+    if (pagina > 0) fila.append(enlace("Inicio", 0, "Primera página"), enlace("Anterior", pagina - 1, "Página anterior"));
 
-    // Ventana de hasta 5 números centrada en la página actual
-    const desde = Math.max(0, Math.min(pagina - 2, totalPaginas - 5));
-    const hasta = Math.min(totalPaginas, desde + 5);
+    // Ventana de hasta 10 números centrada en la página actual
+    const desde = Math.max(0, Math.min(pagina - 4, totalPaginas - 10));
+    const hasta = Math.min(totalPaginas, desde + 10);
     for (let i = desde; i < hasta; i++) {
-        const numero = crearBoton(`pag-numero${i === pagina ? " activa" : ""}`, String(i + 1), i, `Página ${i + 1}`);
-        if (i === pagina) numero.setAttribute("aria-current", "page");
-        fila.append(numero);
+        if (i === pagina) {
+            const actual = crearElemento("span", "pag-actual", String(i + 1));
+            actual.setAttribute("aria-current", "page");
+            fila.append(actual);
+        } else {
+            fila.append(enlace(String(i + 1), i));
+        }
     }
 
-    if (pagina < totalPaginas - 1) fila.append(crearBoton("btn btn-borde btn-chico", "Siguiente ›", pagina + 1, "Página siguiente"));
+    if (pagina < totalPaginas - 1) fila.append(enlace("Siguiente", pagina + 1, "Página siguiente"), enlace("Final", totalPaginas - 1, "Última página"));
     contenedor.append(fila);
 }
 
