@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, Share, TextInput, View, Pressable } from
 import { useFocusEffect } from "@react-navigation/native";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
-import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, subirDocumento } from "../servicios/api";
+import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, subirDocumento } from "../servicios/api";
 import { formatearFecha, formatearFechaHora } from "../utilidades";
 import { radio } from "../tema";
 import { useAutenticacion } from "../contexto/ContextoAutenticacion";

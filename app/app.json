@@ -4,16 +4,56 @@
     "slug": "convenios-unlpam",
     "userInterfaceStyle": "automatic",
     "android": {
-        "package": "ar.edu.unlpam.convenios"
+      "package": "ar.edu.unlpam.convenios",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
-        "expo-secure-store",
-        ["expo-local-authentication", { "faceIDPermission": "Permite usar el reconocimiento facial para confirmar tu identidad." }],
-        ["expo-location", { "locationWhenInUsePermission": "La ubicación se registra una sola vez, al firmar un convenio." }],
-        ["expo-image-picker", { "photosPermission": "Para elegir tu foto de perfil.", "cameraPermission": "Para sacarte la foto de perfil." }],
-        "expo-notifications",
-        ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }],
-        ["expo-image-picker", { "cameraPermission": "Se usa la cámara para tomar su foto de perfil." }]
-    ]
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permite usar el reconocimiento facial para confirmar tu identidad."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "La ubicación se registra una sola vez, al firmar un convenio."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Para elegir tu foto de perfil.",
+          "cameraPermission": "Para sacarte la foto de perfil."
+        }
+      ],
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Se usa la cámara para tomar su foto de perfil."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dd4f7830-03ab-4e08-be43-7b474d35c407"
+      }
+    }
   }
 }
