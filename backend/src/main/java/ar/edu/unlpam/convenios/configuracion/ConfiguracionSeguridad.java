@@ -75,7 +75,7 @@ public class ConfiguracionSeguridad {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, ex) ->
                                 escribirError(req, res, HttpStatus.UNAUTHORIZED,
-                                        "Debe iniciar sesión: falta el token o es inválido"))
+                                        "Usuario o contraseña incorrectos."))
                         .accessDeniedHandler((req, res, ex) ->
                                 escribirError(req, res, HttpStatus.FORBIDDEN,
                                         "No tiene permiso para realizar esta acción")))
