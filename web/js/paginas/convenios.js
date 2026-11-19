@@ -361,12 +361,18 @@ function crearNodo(nodo, huerfanoDe = null) {
 
 function pintarArbol() {
     contenedorArbol.replaceChildren(...vista.raices.map((r) => crearNodo(r.nodo, r.huerfanoDe)));
+
     const total = planos.length;               // convenios en total, con sus específicos
     const totalRaices = nodosActuales.length;  // marcos: lo que se pagina
     const rango = totalPaginas() > 1
         ? ` · mostrando marcos ${pagina * POR_PAGINA + 1}-${Math.min(totalRaices, (pagina + 1) * POR_PAGINA)} de ${totalRaices}` : "";
-    document.getElementById("resumenResultados").textContent =
-        `${total} ${total === 1 ? "convenio encontrado" : "convenios encontrados"}${rango}`;
+
+    // Lo principal es la cantidad de marcos (lo que se ve y se pagina);
+    // el total con los específicos queda como dato secundario
+    const textoMarcos = `${totalRaices} ${totalRaices === 1 ? "marco encontrado" : "marcos encontrados"}`;
+    const textoTotal = total > totalRaices ? ` (${total} convenios con sus específicos)` : "";
+    document.getElementById("resumenResultados").textContent = textoMarcos + textoTotal + rango;
+
     document.getElementById("actualizado").textContent =
         `Actualizado: ${new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}`;
     mostrar(document.getElementById("sinResultados"), total === 0);
