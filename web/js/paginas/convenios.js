@@ -5,7 +5,7 @@ import { dibujarLayout, mostrarAlerta, limpiarAlerta, esConsulta, dibujarPaginac
 import { formatearFecha, crearElemento } from "../utils.js";
 
 
-// Convenios por página (se cuentan todos: marcos y específicos)
+// Marcos por página: los específicos y adendas cuelgan de su marco y no cuentan para el límite
 const POR_PAGINA = 10;
 
 //lista de filtros que se envia a la api
@@ -87,23 +87,24 @@ function aplanarConPadre(nodos, padre = null) {
     return nodos.flatMap((n) => [{ nodo: n, padre }, ...aplanarConPadre(n.hijos, n)]);
 }
 
-const totalPaginas = () => Math.ceil(planos.length / POR_PAGINA);
+const totalPaginas = () => Math.ceil(nodosActuales.length / POR_PAGINA);
 
 // Arma lo que se ve en la página actual: los convenios cuyo marco está en la misma página se
 // muestran dentro de él; si su marco quedó en otra página, aparecen sueltos con una nota
 function armarVista() {
-    const enPagina = planos.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA);
-    const ids = new Set(enPagina.map((e) => e.nodo.id));
+    const raices = nodosActuales
+        .slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA)
+        .map((nodo) => ({ nodo, huerfanoDe: null }));
+
+    // Recorrido recursivo: registra los hijos de cada nodo de la página para que
+    // crearNodo y alternar() los encuentren (también los nietos, p. ej. una adenda)
     const hijosDe = new Map();
-    const raices = [];
-    for (const { nodo, padre } of enPagina) {
-        if (padre && ids.has(padre.id)) {
-            if (!hijosDe.has(padre.id)) hijosDe.set(padre.id, []);
-            hijosDe.get(padre.id).push(nodo);
-        } else {
-            raices.push({ nodo, huerfanoDe: padre });
-        }
-    }
+    const registrar = (nodo) => {
+        if (nodo.hijos?.length) hijosDe.set(nodo.id, nodo.hijos);
+        nodo.hijos?.forEach(registrar);
+    };
+    raices.forEach((r) => registrar(r.nodo));
+
     vista = { raices, hijosDe };
 }
 
@@ -360,9 +361,10 @@ function crearNodo(nodo, huerfanoDe = null) {
 
 function pintarArbol() {
     contenedorArbol.replaceChildren(...vista.raices.map((r) => crearNodo(r.nodo, r.huerfanoDe)));
-    const total = planos.length;
+    const total = planos.length;               // convenios en total, con sus específicos
+    const totalRaices = nodosActuales.length;  // marcos: lo que se pagina
     const rango = totalPaginas() > 1
-        ? ` · mostrando ${pagina * POR_PAGINA + 1}-${Math.min(total, (pagina + 1) * POR_PAGINA)}` : "";
+        ? ` · mostrando marcos ${pagina * POR_PAGINA + 1}-${Math.min(totalRaices, (pagina + 1) * POR_PAGINA)} de ${totalRaices}` : "";
     document.getElementById("resumenResultados").textContent =
         `${total} ${total === 1 ? "convenio encontrado" : "convenios encontrados"}${rango}`;
     document.getElementById("actualizado").textContent =
