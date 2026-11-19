@@ -370,8 +370,7 @@ function pintarArbol() {
     // Lo principal es la cantidad de marcos (lo que se ve y se pagina);
     // el total con los específicos queda como dato secundario
     const textoMarcos = `${totalRaices} ${totalRaices === 1 ? "marco encontrado" : "marcos encontrados"}`;
-    const textoTotal = total > totalRaices ? ` (${total} convenios con sus específicos)` : "";
-    document.getElementById("resumenResultados").textContent = textoMarcos + textoTotal + rango;
+    document.getElementById("resumenResultados").textContent = textoMarcos + rango;
 
     document.getElementById("actualizado").textContent =
         `Actualizado: ${new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}`;
