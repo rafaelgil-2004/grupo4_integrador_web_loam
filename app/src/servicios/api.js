@@ -118,12 +118,30 @@ export const subirDocumento = (convenioId, uriPdf) =>
         mensajeError: "al subir el documento.",
     });
 
+// Baja un documento a la caché con el token. La usan el visor y el botón de compartir.
+export async function descargarDocumento(documentoId) {
+    const destino = `${FileSystem.cacheDirectory}documento-${documentoId}.pdf`;
+    let r;
+    try {
+        r = await FileSystem.downloadAsync(`${obtenerApiUrl()}/documentos/${documentoId}/descargar`, destino,
+            { headers: { Authorization: `Bearer ${tokenActual}` } });
+    } catch {
+        throw new Error("No se pudo conectar al servidor.");
+    }
+    if (r.status !== 200) { // si falla, lo que se guardó es el JSON de error: se borra
+        await FileSystem.deleteAsync(destino, { idempotent: true });
+        if (r.status === 401) alVencerSesion?.();
+        throw new Error(r.status === 404 ? "El archivo no está disponible en el servidor." : "No se pudo descargar el documento.");
+    }
+    return destino;
+}
+
 //buscar
 const aParametros = (filtros) => Object.entries(filtros)
     .filter(([, v]) => v !== undefined && v !== null && v !== "")
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
 
-// filtros: { q, estado, vigencia }. Respuesta paginada: { content, page: { number, totalPages } }
+// filtros: { q, estado, vigencia, anioFirma }. Respuesta paginada: { content, page: { number, totalPages } }
 export const buscarConvenios = (filtros, pagina = 0) =>
     pedir(`/convenios?${aParametros({ ...filtros, pagina, tamanio: 20 })}`);
 export const obtenerArbol = (filtros) => pedir(`/convenios/arbol?${aParametros(filtros)}`);

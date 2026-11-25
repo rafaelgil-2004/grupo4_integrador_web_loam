@@ -3,6 +3,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
+import * as Sharing from "expo-sharing";
 
 // ---------- Biometría ----------
 export async function hayBiometria() {
@@ -74,4 +75,11 @@ export async function elegirFoto(origen, frontal = false) {
     }
     const r = await ImagePicker.launchImageLibraryAsync({ ...opciones, mediaTypes: ["images"] });
     return r.canceled ? null : r.assets[0].uri;
+}
+
+// ---------- Compartir ----------
+// Abre el selector nativo (WhatsApp, mail, Drive...) con el PDF como adjunto
+export async function compartirPdf(uri, titulo) {
+    if (!(await Sharing.isAvailableAsync())) throw new Error("Este celular no permite compartir archivos.");
+    await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: titulo, UTI: "com.adobe.pdf" });
 }

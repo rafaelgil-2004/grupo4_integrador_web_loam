@@ -4,8 +4,8 @@ import Pdf from "react-native-pdf";
 import * as FileSystem from "expo-file-system/legacy";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
-import { obtenerApiUrl } from "../configuracion";
-import { obtenerToken } from "../servicios/api";
+import { descargarDocumento } from "../servicios/api";
+import { compartirPdf } from "../servicios/dispositivo";
 import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 
@@ -17,6 +17,7 @@ export default function PantallaVisorPdf({ route, navigation }) {
     const [error, setError] = useState(null);
     const [pagina, setPagina] = useState(1);
     const [total, setTotal] = useState(0);
+    const [avisoCompartir, setAvisoCompartir] = useState(null);
 
     useEffect(() => {
         navigation.setOptions({ title: documento.nombre });
@@ -25,12 +26,7 @@ export default function PantallaVisorPdf({ route, navigation }) {
             try {
                 if (estaConectado) {
                     // Se baja a un archivo local con el token y el visor lee esa ruta (evita la red de blob-util)
-                    const r = await FileSystem.downloadAsync(`${obtenerApiUrl()}/documentos/${documento.id}/descargar`, destino,
-                        { headers: { Authorization: `Bearer ${obtenerToken()}` } });
-                    if (r.status !== 200) { // si falla, se guardó el JSON de error: se borra
-                        await FileSystem.deleteAsync(destino, { idempotent: true });
-                        throw new Error(r.status === 404 ? "El archivo no está disponible en el servidor." : "No se pudo descargar el documento.");
-                    }
+                    await descargarDocumento(documento.id);
                 } else if (!(await FileSystem.getInfoAsync(destino)).exists) {
                     throw new Error("Sin conexión y el documento no fue descargado antes.");
                 }
@@ -56,6 +52,9 @@ export default function PantallaVisorPdf({ route, navigation }) {
                 <Texto variante="pequenio" color="textoSuave" style={{ textAlign: "center" }}>
                     Página {pagina} de {total}
                 </Texto>
+                <Boton variante="secundario" texto="Compartir PDF"
+                    onPress={() => compartirPdf(archivo, `Compartir ${documento.nombre}`).catch((e) => setAvisoCompartir(e.message))} />
+                {avisoCompartir && <Texto variante="pequenio" color="error" style={{ textAlign: "center" }}>{avisoCompartir}</Texto>}
                 {puedeFirmar && (
                     <>
                         <Boton texto="Firmar convenio" deshabilitado={!leyoTodo || !estaConectado}

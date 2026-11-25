@@ -18,11 +18,17 @@ const VIGENCIAS = [
     { valor: "VIGENTE", texto: "Vigente" }, { valor: "POR_VENCER", texto: "Por vencer" }, { valor: "EXPIRADO", texto: "Vencido" },
 ];
 const MODOS = [{ valor: "lista", texto: "Lista" }, { valor: "arbol", texto: "Árbol" }];
+// Año de firma: el actual y los cinco anteriores
+const ANIOS = Array.from({ length: 6 }, (_, i) => {
+    const anio = new Date().getFullYear() - i;
+    return { valor: anio, texto: String(anio) };
+});
+const SIN_FILTROS = { texto: "", estado: null, vigencia: null, anio: null };
 
 export default function PantallaBusqueda({ route, navigation }) {
     const { colores } = useTema();
     const { estaConectado } = useConexion();
-    const [filtros, setFiltros] = useState({ texto: "", estado: null, vigencia: null });
+    const [filtros, setFiltros] = useState(SIN_FILTROS);
     const [modo, setModo] = useState("lista");
     const [resultados, setResultados] = useState([]);
     const [arbol, setArbol] = useState([]);
@@ -34,14 +40,14 @@ export default function PantallaBusqueda({ route, navigation }) {
     // El encabezado y las tarjetas del Inicio navegan acá con parámetros; "momento" cambia en cada envío
     useEffect(() => {
         const p = route.params;
-        if (p?.momento) setFiltros({ texto: p.texto ?? "", estado: p.estado ?? null, vigencia: p.vigencia ?? null });
+        if (p?.momento) setFiltros({ ...SIN_FILTROS, texto: p.texto ?? "", estado: p.estado ?? null, vigencia: p.vigencia ?? null });
     }, [route.params?.momento]);
 
     const cargar = useCallback(async (nuevaPagina = 0) => {
         if (!estaConectado) return;
         setCargando(true);
         setError(null);
-        const f = { q: filtros.texto, estado: filtros.estado, vigencia: filtros.vigencia };
+        const f = { q: filtros.texto, estado: filtros.estado, vigencia: filtros.vigencia, anioFirma: filtros.anio };
         try {
             if (modo === "arbol") {
                 setArbol(await obtenerArbol(f));
@@ -61,8 +67,8 @@ export default function PantallaBusqueda({ route, navigation }) {
     const abrirDocumento = (d, c) => navigation.navigate("Visor", { documento: d, convenioId: c.id, codigo: c.codigo, puedeFirmar: false });
     const cambiar = (campo) => (valor) => setFiltros((f) => ({ ...f, [campo]: valor }));
 
-    const activos = [filtros.estado, filtros.vigencia, filtros.texto].filter(Boolean).length;
-    const limpiar = () => setFiltros({ texto: "", estado: null, vigencia: null });
+    const activos = [filtros.estado, filtros.vigencia, filtros.texto, filtros.anio].filter(Boolean).length;
+    const limpiar = () => setFiltros(SIN_FILTROS);
 
     const controles = (
         <View style={{ padding: 16, gap: 12 }}>
@@ -94,6 +100,10 @@ export default function PantallaBusqueda({ route, navigation }) {
         
             <GrupoFiltro titulo="Vigencia" activo={!!filtros.vigencia}>
                 <ChipsFiltro opciones={VIGENCIAS} valor={filtros.vigencia} onCambio={cambiar("vigencia")} />
+            </GrupoFiltro>
+
+            <GrupoFiltro titulo="Año de firma" activo={!!filtros.anio}>
+                <ChipsFiltro opciones={ANIOS} valor={filtros.anio} onCambio={cambiar("anio")} />
             </GrupoFiltro>
         
             {error && <Texto color="error" accessibilityLiveRegion="polite">{error}</Texto>}

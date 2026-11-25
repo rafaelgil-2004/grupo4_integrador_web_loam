@@ -3,7 +3,8 @@ import { ActivityIndicator, ScrollView, Share, TextInput, View, Pressable } from
 import { useFocusEffect } from "@react-navigation/native";
 import { useTema } from "../contexto/ContextoTema";
 import { useConexion } from "../contexto/ContextoConexion";
-import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, subirDocumento } from "../servicios/api";
+import { obtenerConvenio, obtenerDocumentos, obtenerObservaciones, agregarObservacion, subirDocumento, descargarDocumento } from "../servicios/api";
+import { compartirPdf } from "../servicios/dispositivo";
 import { formatearFecha, formatearFechaHora } from "../utilidades";
 import { radio } from "../tema";
 import { useAutenticacion } from "../contexto/ContextoAutenticacion";
@@ -39,6 +40,8 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
     const [enviando, setEnviando] = useState(false);
     const [subiendo, setSubiendo] = useState(false);
     const [mensajeSubida, setMensajeSubida] = useState(null);
+    const [compartiendo, setCompartiendo] = useState(false);
+    const [mensajeCompartir, setMensajeCompartir] = useState(null);
     const { usuario } = useAutenticacion();
     const puedeFirmar = !!convenio && convenio.estado === "ACEPTADO" &&
     convenio.listaImplicados?.some((f) => f.usuarioId === usuario.id && !f.firmado);
@@ -88,10 +91,21 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
         setSubiendo(false);
     }
 
-    // Comparte texto plano con el selector nativo (mail, WhatsApp, etc.)
-    const compartir = () => Share.share({
-        message: `Convenio ${convenio.codigo}: ${convenio.titulo}\nEstado: ${convenio.estado}`,
-    });
+    // Comparte el PDF del convenio (el primer documento) con el selector nativo: WhatsApp, mail, etc.
+    // Sin documentos o sin conexión, comparte un texto con los datos del convenio.
+    async function compartir() {
+        setMensajeCompartir(null);
+        if (!documentos.length || !estaConectado) {
+            await Share.share({ message: `Convenio ${convenio.codigo}: ${convenio.titulo}\nEstado: ${convenio.estado}` });
+            return;
+        }
+        setCompartiendo(true);
+        try {
+            const uri = await descargarDocumento(documentos[0].id);
+            await compartirPdf(uri, `Compartir ${convenio.codigo}`);
+        } catch (e) { setMensajeCompartir(e.message); }
+        setCompartiendo(false);
+    }
 
     if (!convenio) {
         return (
@@ -175,7 +189,9 @@ export default function PantallaDetalleConvenio({ route, navigation }) {
                 <Boton texto={enviando ? "Enviando..." : "Comentar"} onPress={comentar} deshabilitado={enviando || !estaConectado} />
             </Seccion>
 
-            <Boton variante="enlace" texto="Compartir convenio" onPress={compartir} />
+            <Boton variante="enlace" texto={compartiendo ? "Preparando PDF..." : "Compartir convenio (PDF)"}
+                onPress={compartir} deshabilitado={compartiendo} />
+            {mensajeCompartir ? <Texto variante="pequenio" color="error">{mensajeCompartir}</Texto> : null}
         </ScrollView>
     );
 }

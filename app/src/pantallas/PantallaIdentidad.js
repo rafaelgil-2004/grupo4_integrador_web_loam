@@ -10,6 +10,7 @@ import Texto from "../componentes/atomos/Texto";
 import Boton from "../componentes/atomos/Boton";
 import TarjetaIdentidad from "../componentes/moleculas/TarjetaIdentidad";
 import LienzoFirma from "../componentes/organismos/LienzoFirma";
+import AvisoSinConexion from "../componentes/moleculas/AvisoSinConexion";
 
 export default function PantallaIdentidad() {
     const { usuario } = useAutenticacion();
@@ -74,6 +75,7 @@ export default function PantallaIdentidad() {
     return (
         <ScrollView scrollEnabled={!dibujando} style={{ backgroundColor: colores.fondo }}
             contentContainerStyle={{ padding: 16, gap: 16 }} keyboardShouldPersistTaps="handled">
+            <AvisoSinConexion detalle="La firma, el rostro y la huella se guardan en este celular, así que se pueden registrar igual." />
             {mensaje && <Texto accessibilityLiveRegion="polite" style={{ fontWeight: "600" }}>{mensaje}</Texto>}
 
             <TarjetaIdentidad titulo="Firma manual" registrado={!!firma}
