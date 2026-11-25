@@ -239,7 +239,6 @@ function pintarAcciones(c) {
     }
 
     if (c.estado === "FIRMADO") {
-        // La adenda modifica un convenio vigente sin reemplazarlo
         const adenda = crearElemento("a", "btn btn-convenios", "Crear adenda");
         adenda.href = `convenio-form.html?padre=${c.id}`;
         acciones.append(adenda);
@@ -489,7 +488,7 @@ async function iniciar() {
         convenio = await obtenerConvenio(idConvenio);
     } catch (error) {
         mostrar(document.getElementById("cargando"), false);
-        mostrarAlerta(alertas, error.message); // 404 si no existe o no tiene permiso
+        mostrarAlerta(alertas, error.message);
         return;
     }
 
@@ -503,7 +502,6 @@ async function iniciar() {
     mostrar(document.getElementById("cargando"), false);
     mostrar(document.getElementById("contenido"), true);
 
-    // Las tres cargas son independientes: si una falla, las otras pestañas funcionan igual
     cargarDocumentos();
     cargarObservaciones();
     cargarHistorial();

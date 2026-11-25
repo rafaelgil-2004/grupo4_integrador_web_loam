@@ -20,19 +20,16 @@ let usuarios = [];      // lo último que devolvió la API para el rol elegido
 let rolElegido = "";    // "" = todos
 let ultimaBusqueda = 0;
 
-// Sin tildes y en minúsculas: "maria" encuentra "María"
+//sin tildes y en minúsculas
 const normalizar = (texto) => texto.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
-// ---------- Datos ----------
-
+//Datos
 async function cargar(conservarAlerta = false) {
     // Si el usuario cambia de filtro rápido, una respuesta lenta vieja no pisa a la nueva
     const numero = ++ultimaBusqueda;
     if (!conservarAlerta) limpiarAlerta(alertas);
     marcarCargando(true);
     try {
-        // Al servidor solo viaja el rol. El texto se filtra acá porque la API busca en
-        // nombre, apellido y mail por separado y "María González" no coincidiría con ninguno.
         const lista = await listarUsuarios(rolElegido ? { rol: rolElegido } : {});
         if (numero !== ultimaBusqueda) return;
         usuarios = lista;
@@ -53,7 +50,7 @@ function filtrarPorTexto(lista) {
     });
 }
 
-// ---------- Tabla ----------
+//tabla
 
 function marcarCargando(cargando) {
     document.getElementById("resultados").setAttribute("aria-busy", String(cargando));
@@ -73,7 +70,6 @@ function crearFila(u) {
     const celdaMail = crearElemento("td");
     celdaMail.append(correo);
 
-    // El texto va siempre escrito: el color solo refuerza (igual que las etiquetas de convenios)
     const celdaEstado = crearElemento("td");
     celdaEstado.append(crearElemento("span", `etiqueta${u.activo ? " ok" : ""}`, u.activo ? "Activo" : "Inactivo"));
 
@@ -85,7 +81,7 @@ function crearFila(u) {
     alternar.type = "button";
     alternar.setAttribute("aria-label", `${u.activo ? "Desactivar" : "Activar"} a ${u.nombre} ${u.apellido}`);
     if (esUnoMismo && u.activo) {
-        // Nadie puede desactivarse a sí mismo (la API también lo rechaza)
+        // Nadie puede desactivarse a sí mismo
         alternar.disabled = true;
         alternar.title = "No puede desactivarse a sí mismo";
     } else {
@@ -101,7 +97,7 @@ function crearFila(u) {
     return fila;
 }
 
-// ---------- Activar / desactivar ----------
+//activar/desactivar
 
 let usuarioPendiente = null;
 let modalActivo;
@@ -145,23 +141,20 @@ function pintarTabla() {
         `${visibles.length} ${visibles.length === 1 ? "usuario encontrado" : "usuarios encontrados"}`;
 }
 
-// ---------- Filtro por rol ----------
-
+//filtro por rol 
 function aplicarFiltros() {
     rolElegido = formulario.elements.rol.value;
     cargar();
 }
 
-// ---------- Inicio ----------
-
+//inicio 
 function iniciar() {
-    // La API solo deja entrar a Administración; acá se evita mostrar una pantalla que fallaría
+    // la api solo deja entrar a Administración
     if (obtenerUsuario()?.rol !== "ADMINISTRACION") { location.replace("convenios.html"); return; }
     dibujarLayout("usuarios");
     modalActivo = new bootstrap.Modal(document.getElementById("modalActivo"));
     document.getElementById("confirmarActivo").addEventListener("click", confirmarCambio);
 
-    // Mensaje de éxito que deja usuario-form.html al guardar
     const resultado = parametroUrl("ok");
     if (resultado) {
         mostrarAlerta(alertas, resultado === "editado" ? "Usuario actualizado correctamente." : "Usuario registrado correctamente.", "success");
@@ -170,7 +163,7 @@ function iniciar() {
 
     formulario.addEventListener("submit", (evento) => { evento.preventDefault(); aplicarFiltros(); });
     document.getElementById("botonLimpiar").addEventListener("click", () => { formulario.reset(); aplicarFiltros(); });
-    // Mientras escribe, filtra lo ya cargado (sin pedir nada al servidor)
+    //mientras escribe, filtra lo ya cargado
     document.getElementById("q").addEventListener("input", pintarTabla);
     cargar(Boolean(resultado));
 }

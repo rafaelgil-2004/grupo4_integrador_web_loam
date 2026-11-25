@@ -71,8 +71,7 @@ const filtrarFirmantes = (usuarios) => usuarios
     .filter((u) => u.activo && !["ADMINISTRACION", "GESTION"].includes(u.rol))
     .map((u) => ({ id: u.id, nombre: `${u.nombre} ${u.apellido}` }));
 
-// ---------- Crear ----------
-
+//crear
 function elegirTipo(tipo) {
     tipoActual = tipo;
     campo("tipoElegido").textContent = TIPOS[tipo].nombre;
@@ -81,7 +80,6 @@ function elegirTipo(tipo) {
     modalTipo.hide();
 }
 
-// Reglas que la API vuelve a comprobar; acá solo se evita un viaje
 function validar() {
     const aviso = (mensaje) => { mostrarAlerta(campo("alertas"), mensaje, "warning"); campo("alertas").scrollIntoView({ block: "nearest" }); return false; };
     if (!valorDe("nombre").value.trim()) return aviso("Ingrese el nombre del convenio.");
@@ -102,7 +100,6 @@ function solicitudNueva() {
         titulo: valorDe("nombre").value.trim(),
         tipo: tipoActual,
         subtipo: campo("subtipo").value,
-        // Gestión trabaja siempre en su unidad: la API la toma del usuario
         unidadId: creandoAdenda ? padreAdenda.unidad.id
             : usuarioSesion.rol === "ADMINISTRACION" ? Number(campo("unidad").value) : usuarioSesion.unidadId ?? null,
         organizacion: valorDe("partes").value.trim() || null,
@@ -113,7 +110,7 @@ function solicitudNueva() {
     };
 }
 
-// ---------- Editar ----------
+//editar
 
 function cargarFormulario(c) {
     const esMarco = c.tipo === "MARCO";
@@ -122,7 +119,6 @@ function cargarFormulario(c) {
     campo("camposEspecifico").hidden = esMarco;
     campo("botonCambiarTipo").hidden = true; // la API no permite cambiar el tipo de un convenio existente
 
-    // Subtipo y unidad no se cambian al editar (el subtipo forma parte del código)
     campo("subtipo").value = c.subtipo;
     campo("subtipo").disabled = true;
 
@@ -133,7 +129,6 @@ function cargarFormulario(c) {
     valorDe("vencimiento").value = c.fechaVencimiento ?? "";
     valorDe("partes").value = c.organizacion ?? "";
 
-    // Los firmantes se pueden cambiar
     const actuales = (c.listaImplicados ?? []).map((f) => ({ id: f.usuarioId, nombre: f.usuarioNombre }));
     const idsCandidatos = new Set(candidatosFirmantes.map((u) => u.id));
     const opciones = [...candidatosFirmantes, ...actuales.filter((f) => !idsCandidatos.has(f.id))];
@@ -172,7 +167,7 @@ function solicitudEdicion() {
     };
 }
 
-// ---------- Guardar (crear o editar) ----------
+//Guardar (crear o editar)
 
 async function guardar(evento) {
     evento.preventDefault();
@@ -193,7 +188,7 @@ async function guardar(evento) {
         alertas.scrollIntoView({ block: "nearest" });
         return;
     }
-    // Los datos ya quedaron guardados: si falla solo el PDF, se avisa y se ofrece seguir en la ficha
+    // los datos ya quedaron guardados si falla solo el pdf, se avisa y se ofrece seguir en la ficha
     const archivo = valorDe("pdf").files[0];
     if (archivo) {
         try { await subirDocumento(id, archivo); }
@@ -206,7 +201,7 @@ async function guardar(evento) {
     location.href = `convenio.html?id=${id}`;
 }
 
-// ---------- Inicio ----------
+//inicio
 
 async function prepararCreacion() {
     campo("campoUnidad").hidden = usuarioSesion.rol !== "ADMINISTRACION";
@@ -216,11 +211,11 @@ async function prepararCreacion() {
     document.querySelectorAll(".opcion-tipo").forEach((boton) =>
         boton.addEventListener("click", () => elegirTipo(boton.dataset.tipo)));
     campo("botonCambiarTipo").addEventListener("click", () => modalTipo.show());
-    // Sin tipo elegido no hay formulario: cancelar vuelve atrás. Con un tipo ya elegido, solo cierra la ventana.
+    //sin tipo elegido no hay formulario cancelar vuelve atrás. Con un tipo ya elegido, solo cierra la ventana.
     campo("cancelarModal").addEventListener("click", () => (tipoActual ? modalTipo.hide() : volverAtras("convenios.html")));
     modalTipo.show();
 
-    // Datos para los selectores; si algo falla, se avisa y el resto del formulario sigue
+    //datos para los selectores; si algo falla, se avisa y el resto del formulario sigue
     const [unidades, usuarios] = await Promise.allSettled([
         usuarioSesion.rol === "ADMINISTRACION" ? listarUnidades() : Promise.resolve([]),
         listarUsuarios(),
@@ -229,7 +224,7 @@ async function prepararCreacion() {
         for (const u of unidades.value) campo("unidad").append(new Option(u.nombre, u.id));
     }
     if (usuarios.status === "fulfilled") {
-        // Solo pueden firmar usuarios activos de consulta
+        //solo pueden firmar usuarios activos de consulta
         candidatosFirmantes = filtrarFirmantes(usuarios.value);
     }
     for (const t of Object.values(TIPOS)) dibujarFirmantes(campo(`${t.prefijo}firmantes`), candidatosFirmantes);
@@ -237,7 +232,7 @@ async function prepararCreacion() {
     if (fallo) mostrarAlerta(campo("alertas"), `No se pudo cargar parte de los datos: ${fallo.reason.message}`);
 }
 
-//Adenda
+//adenda
 async function prepararAdenda() {
     document.title = "Crear adenda | Convenios UNLPam";
     campo("tituloPagina").textContent = "Crear adenda";
@@ -250,13 +245,11 @@ async function prepararAdenda() {
     }
     let usuarios;
     try {
-        // Promise.all (no allSettled): sin el convenio padre no hay adenda posible
         [padreAdenda, usuarios] = await Promise.all([obtenerConvenio(idPadreAdenda), listarUsuarios()]);
     } catch (error) {
         mostrarAlerta(campo("alertas"), error.message);
         return;
     }
-    // Regla de la web: la adenda modifica un convenio vigente (la API no lo exige)
     if (padreAdenda.estado !== "FIRMADO") {
         mostrarAlerta(campo("alertas"), "Solo se pueden crear adendas de convenios Firmados.", "warning");
         return;
@@ -268,7 +261,6 @@ async function prepararAdenda() {
     campo("camposEspecifico").hidden = false;
     campo("botonCambiarTipo").hidden = true;
 
-    // Subtipo y unidad se heredan del convenio que se modifica
     campo("subtipo").value = padreAdenda.subtipo;
     campo("subtipo").disabled = true;
     const selector = campo("e-marco");
@@ -278,7 +270,6 @@ async function prepararAdenda() {
     campo("ayudaMarco").textContent = "La adenda queda vinculada a este convenio, que sigue vigente.";
     valorDe("partes").value = padreAdenda.organizacion ?? "";
 
-    // Se proponen los firmantes del convenio original; se pueden cambiar
     candidatosFirmantes = filtrarFirmantes(usuarios);
     const delPadre = (padreAdenda.listaImplicados ?? []).map((f) => f.usuarioId);
     dibujarFirmantes(campo("e-firmantes"), candidatosFirmantes, { marcados: delPadre });
@@ -314,9 +305,7 @@ async function prepararEdicion() {
 
 function iniciar() {
     usuarioSesion = obtenerUsuario();
-    // Consulta no crea ni edita convenios
     if (esConsulta(usuarioSesion?.rol)) { location.replace("convenios.html"); return; }
-    // En los formularios no hay menú de navegación; el resto del encabezado y el pie son los de siempre
     dibujarLayout("convenios", { menu: false });
 
     activarBotonVolver(campo("botonVolver"), "convenios.html");

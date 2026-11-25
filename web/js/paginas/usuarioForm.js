@@ -1,6 +1,3 @@
-// Página: usuario-form.html (registrar y editar usuario)
-// Sin ?id= registra; con ?id= abre el formulario con los datos cargados y permite modificarlos.
-// Solo Administración. Las reglas de validación repiten las de la API (que las vuelve a comprobar).
 import { exigirSesion, obtenerUsuario } from "../sesion.js";
 import { listarUsuarios, listarUnidades, crearUsuario, actualizarUsuario } from "../api.js";
 import { dibujarLayout, mostrarAlerta, limpiarAlerta, activarBotonVolver } from "../ui.js";
@@ -11,8 +8,7 @@ const campo = (id) => document.getElementById(id);
 const idEdicion = parametroUrl("id");
 const editando = idEdicion !== null;
 
-// ---------- Errores por campo ----------
-
+//errores por campo
 function marcarError(id, mensaje) {
     const entrada = campo(id);
     entrada.classList.add("is-invalid");
@@ -29,9 +25,9 @@ function limpiarErrores() {
     document.querySelectorAll("#formularioUsuario .is-invalid").forEach((e) => e.classList.remove("is-invalid"));
 }
 
-// ---------- Unidad según el rol ----------
+//unidad según el rol
 
-// Administración nunca lleva unidad; Gestión la necesita; el resto es opcional
+//administración nunca lleva unidad, gestión la necesita, el resto es opcional
 function ajustarUnidad() {
     const rol = campo("rol").value;
     const selector = campo("unidadId");
@@ -40,7 +36,7 @@ function ajustarUnidad() {
     selector.required = rol === "GESTION";
 }
 
-// ---------- Validación ----------
+//validación
 
 function validar() {
     limpiarErrores();
@@ -73,13 +69,12 @@ function armarSolicitud() {
         rol,
         unidadId: rol === "ADMINISTRACION" || !campo("unidadId").value ? null : Number(campo("unidadId").value),
     };
-    // Al editar, sin contraseña la API conserva la actual
+    // al editar sin contraseña la API conserva la actual
     if (campo("password").value) datos.password = campo("password").value;
     return datos;
 }
 
-// ---------- Guardar ----------
-
+//guardar
 async function guardar(evento) {
     evento.preventDefault();
     limpiarAlerta(campo("alertas"));
@@ -97,21 +92,19 @@ async function guardar(evento) {
     } catch (error) {
         boton.disabled = false;
         if (error.codigo === "MAIL_DUPLICADO") marcarError("mail", error.message);
-        // Errores por campo de un 400 (los nombres coinciden con los ids del formulario)
         for (const [nombre, mensaje] of Object.entries(error.detalles ?? {})) if (campo(nombre)) marcarError(nombre, mensaje);
         mostrarAlerta(campo("alertas"), error.message);
         campo("alertas").scrollIntoView({ block: "nearest" });
     }
 }
 
-// ---------- Carga de datos ----------
+//carga de datos
 
 async function cargarUnidades() {
     for (const unidad of await listarUnidades()) campo("unidadId").append(new Option(unidad.nombre, unidad.id));
 }
 
 async function cargarUsuario() {
-    // La API no tiene "obtener uno": se toma del listado (Administración recibe todos)
     const usuario = (await listarUsuarios()).find((u) => String(u.id) === idEdicion);
     if (!usuario) throw new Error("No se encontró el usuario que se quiere editar.");
     campo("nombre").value = usuario.nombre;
@@ -132,9 +125,8 @@ function prepararModoEdicion() {
 }
 
 async function iniciar() {
-    // Solo Administración registra y edita usuarios
     if (obtenerUsuario()?.rol !== "ADMINISTRACION") { location.replace("convenios.html"); return; }
-    dibujarLayout("usuarios", { menu: false }); // formulario: sin menú de navegación
+    dibujarLayout("usuarios", { menu: false });
 
     activarBotonVolver(campo("botonVolver"), "usuarios.html");
     activarBotonVolver(campo("botonCancelar"), "usuarios.html");
