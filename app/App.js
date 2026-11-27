@@ -10,15 +10,20 @@ import NavegadorRaiz from "./src/navegacion/NavegadorRaiz";
 configurarNotificaciones();
 
 export default function App() {
+    //bandera para saber que todo esta listo
     const [listo, setListo] = useState(false);
 
-    // La dirección de la API guardada en el celular se lee antes de que cualquier pantalla pida datos
+    //leer la ip del selector
     useEffect(() => { cargarApiUrl().finally(() => setListo(true)); }, []);
     if (!listo) return null;
 
+    /*
+    safearea: zona segura para colocar contenido
+    proveedores: para que puedan acceder al contexto
+    */
     return (
         <SafeAreaProvider>
-            <ProveedorTema>
+            <ProveedorTema> 
                 <ProveedorConexion>
                     <ProveedorAutenticacion>
                         <NavegadorRaiz />

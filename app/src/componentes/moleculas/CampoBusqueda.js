@@ -2,7 +2,12 @@ import { Pressable, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTema } from "../../contexto/ContextoTema";
 import { radio } from "../../tema";
+/*
+valor: texto del campo
+onCambio: funcion que se llama cuando escribe
+onBuscar: funcion que se llama al buscar
 
+*/
 export default function CampoBusqueda({ valor, onCambio, onBuscar, placeholder = "Buscar convenios" }) {
     const { colores, escala } = useTema();
     return (

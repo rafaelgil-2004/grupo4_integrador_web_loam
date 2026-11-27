@@ -1,5 +1,3 @@
-// Textos del manual y de la ayuda de cada pantalla. Para sumar una captura a un paso:
-//   { texto: "...", imagen: require("../assets/ayuda/firmar-1.png") }
 export const MANUAL = [
     { icono: "log-in-outline", titulo: "Iniciar sesión", pasos: [
         { texto: "Ingrese su correo y su contraseña." },
@@ -43,7 +41,7 @@ export const MANUAL = [
     ] },
 ];
 
-// Ayuda breve que muestra el botón “?” según el nombre de la pantalla
+// Ayuda breve que muestra el ?
 export const AYUDAS = {
     Inicio: "Resumen de sus convenios, sus pendientes de firma y los últimos movimientos. Toque una tarjeta para ver esos convenios. Deslice hacia abajo para actualizar.",
     Pendientes: "Convenios aceptados que todavía no firmó. Toque uno para ver su detalle y firmarlo.",

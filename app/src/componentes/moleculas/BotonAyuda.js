@@ -4,9 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useTema } from "../../contexto/ContextoTema";
 import { AYUDAS } from "../../ayuda";
 
-// Se usa en el encabezado de las pestañas y de las pantallas del Stack. Sin texto de ayuda para esa pantalla, no se dibuja.
+//botonsito para los perdidos
 export default function BotonAyuda({ pantalla }) {
-    const navigation = useNavigation();
+    const navigation = useNavigation();//se usa con hook porque se dibuja en el encabezado
     const { colores } = useTema();
     const texto = AYUDAS[pantalla];
     if (!texto) return null;

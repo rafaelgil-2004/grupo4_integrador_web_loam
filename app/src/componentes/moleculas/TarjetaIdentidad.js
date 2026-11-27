@@ -3,6 +3,8 @@ import { useTema } from "../../contexto/ContextoTema";
 import { radio } from "../../tema";
 import Texto from "../atomos/Texto";
 
+//registrado: true/false segun si esta cargado o no
+
 export default function TarjetaIdentidad({ titulo, registrado, descripcion, children }) {
     const { colores } = useTema();
     return (

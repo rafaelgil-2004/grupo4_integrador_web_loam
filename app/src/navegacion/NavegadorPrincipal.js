@@ -18,17 +18,17 @@ import { useRecordatorios } from "../servicios/useRecordatorios";
 import PantallaManual from "../pantallas/PantallaManual";
 import BotonAyuda from "../componentes/moleculas/BotonAyuda";
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-
+const Tab = createBottomTabNavigator();//barra de navegacio(abajo)
+const Stack = createNativeStackNavigator();//pila para volver atras
+//diccionario de iconos
 const ICONOS = { Inicio: "home", Pendientes: "create", Buscar: "search", Perfil: "person" };
 
+//barra de navegacion
 function Pestanias() {
     const { colores } = useTema();
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
-                // El buscador vive en el encabezado y se ve en todas las pestañas
                 header: ({ navigation, route }) => <EncabezadoApp navigation={navigation} route={route} />,
                 tabBarActiveTintColor: colores.acento,
                 tabBarInactiveTintColor: colores.textoSuave,
@@ -43,13 +43,14 @@ function Pestanias() {
 }
 
 export default function NavegadorPrincipal() {
-    useRecordatorios();
+    useRecordatorios();//activa los recordatorios
     const { colores, modoOscuro } = useTema();
-    // Se parte del tema de React Navigation y se pisan sus colores con los del equipo
+
     const base = modoOscuro ? DarkTheme : DefaultTheme;
     const tema = { ...base, colors: { ...base.colors, background: colores.fondo, card: colores.superficie,
                                       text: colores.texto, border: colores.borde, primary: colores.acento } };
     return (
+        //contenedor raiz de toda la navegacion
         <NavigationContainer theme={tema}>
             <Stack.Navigator screenOptions={({ route }) => ({ headerRight: () => <BotonAyuda pantalla={route.name} /> })}>
                 <Stack.Screen name="Pestanias" component={Pestanias} options={{ headerShown: false }} />
@@ -58,7 +59,7 @@ export default function NavegadorPrincipal() {
                 <Stack.Screen name="Firma" component={PantallaFirma} options={{ title: "Firmar" }} />
                 <Stack.Screen name="Identidad" component={PantallaIdentidad} options={{ title: "Mi identidad" }} />
                 <Stack.Screen name="Simulacion" component={PantallaSimulacion} options={{ title: "Simulación" }} />
-                 <Stack.Screen name="Manual" component={PantallaManual} options={{ title: "Manual de uso" }} />
+                <Stack.Screen name="Manual" component={PantallaManual} options={{ title: "Manual de uso" }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

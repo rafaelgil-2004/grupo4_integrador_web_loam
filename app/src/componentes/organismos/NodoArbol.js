@@ -6,17 +6,25 @@ import { obtenerDocumentos } from "../../servicios/api";
 import Texto from "../atomos/Texto";
 import Insignia from "../atomos/Insignia";
 
-// Nodo recursivo: convenio → (adendas/convenios hijos) + documentos. Los documentos se piden al expandir.
+//recursivo
+/*
+nodo: convenio de la fila correspondiente
+nivel: nivel de sangria
+alAbrirConvenio/alAbrisDocumento: funciones
+*/
 export default function NodoArbol({ nodo, nivel = 0, alAbrirConvenio, alAbrirDocumento }) {
     const { colores } = useTema();
-    const [abierto, setAbierto] = useState(false);
-    const [documentos, setDocumentos] = useState(null); // null = todavía no cargados
+    const [abierto, setAbierto] = useState(false);//fila expandida
+    const [documentos, setDocumentos] = useState(null);
 
+    //abrir/cerrar la lista
     async function alternar() {
         const nuevo = !abierto;
         setAbierto(nuevo);
         if (nuevo && documentos === null) {
-            try { setDocumentos(await obtenerDocumentos(nodo.id)); } catch { setDocumentos([]); }
+            try { 
+                setDocumentos(await obtenerDocumentos(nodo.id)); 
+            } catch { setDocumentos([]); }
         }
     }
 
@@ -39,10 +47,10 @@ export default function NodoArbol({ nodo, nivel = 0, alAbrirConvenio, alAbrirDoc
 
             {abierto && (
                 <View>
-                    {nodo.hijos?.map((h) => (
+                    {nodo.hijos?.map((h) => (//convenios 
                         <NodoArbol key={h.id} nodo={h} nivel={nivel + 1} alAbrirConvenio={alAbrirConvenio} alAbrirDocumento={alAbrirDocumento} />
                     ))}
-                    {documentos?.map((d) => (
+                    {documentos?.map((d) => (//documentos anexados
                         <Pressable key={`d${d.id}`} onPress={() => alAbrirDocumento(d, nodo)} accessibilityRole="button"
                             style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingLeft: (nivel + 1) * 16 + 12 }}>
                             <Ionicons name="document-text-outline" size={18} color={colores.acento} />

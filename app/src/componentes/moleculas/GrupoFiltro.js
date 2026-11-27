@@ -3,7 +3,10 @@ import { useTema } from "../../contexto/ContextoTema";
 import { radio } from "../../tema";
 import Texto from "../atomos/Texto";
 
-// Tarjeta con título para un grupo de chips. Si hay una opción elegida, el borde izquierdo se resalta
+/*
+activo: si hay algo elegido
+cildren: los chipsfiltros
+*/
 export default function GrupoFiltro({ titulo, activo = false, children }) {
     const { colores } = useTema();
     return (

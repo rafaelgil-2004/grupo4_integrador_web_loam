@@ -21,7 +21,6 @@ export async function autenticarConHuella(motivo) {
 }
 
 // ---------- Notificaciones locales ----------
-// Se llama una vez al iniciar la app: permite que se vean con la app abierta
 export function configurarNotificaciones() {
     Notifications.setNotificationHandler({
         handleNotification: async () => ({

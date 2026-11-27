@@ -3,6 +3,9 @@ import { useTema } from "../../contexto/ContextoTema";
 import { radio } from "../../tema";
 import Texto from "../atomos/Texto";
 
+/*
+onPress: funcion opcional para cuando se toca
+*/
 export default function TarjetaResumen({ valor, titulo, onPress }) {
     const { colores } = useTema();
     const Contenedor = onPress ? Pressable : View;

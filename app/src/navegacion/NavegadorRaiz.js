@@ -5,8 +5,7 @@ import { useTema } from "../contexto/ContextoTema";
 import PantallaLogin from "../pantallas/PantallaLogin";
 import NavegadorPrincipal from "./NavegadorPrincipal";
 
-// Decide qué se ve: cargando la sesión guardada → login → app.
-// Cuando haya navegación real, PantallaProvisoria se reemplaza por NavegadorPrincipal.
+//decide que mostrar al entrar en la app
 export default function NavegadorRaiz() {
     const { usuario, cargando } = useAutenticacion();
     const { colores, modoOscuro } = useTema();

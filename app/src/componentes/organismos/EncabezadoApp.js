@@ -8,13 +8,15 @@ import Avatar from "../atomos/Avatar";
 import CampoBusqueda from "../moleculas/CampoBusqueda";
 import BotonAyuda from "../moleculas/BotonAyuda";
 
+/*
+se usa un ecabezado propio porque el estandar no lo permite
+*/
 export default function EncabezadoApp({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const { colores } = useTema();
     const { usuario, foto } = useAutenticacion();
     const [texto, setTexto] = useState("");
 
-    // "momento" cambia en cada envío para que la pantalla de búsqueda se entere aunque el texto sea el mismo
     const buscar = () => navigation.navigate("Buscar", { texto: texto.trim(), momento: Date.now() });
 
     return (

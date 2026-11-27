@@ -1,6 +1,8 @@
+//completar con ceros a la izquierda
 const dos = (n) => String(n).padStart(2, "0");
 
-// "2026-11-18" (solo fecha) se interpretaría como UTC y mostraría el día anterior en Argentina
+//correccion de la fecha
+//"2026-11-18" (solo fecha) se interpretaría como UTC y mostraría el día anterior en Argentina
 function aFecha(valor) {
     if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
         const [anio, mes, dia] = valor.split("-").map(Number);
@@ -21,9 +23,10 @@ export function formatearFechaHora(valor) {
     return `${formatearFecha(valor)} ${dos(f.getHours())}:${dos(f.getMinutes())}`;
 }
 
+//validacion de mail
 export const validarMail = (mail) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim());
 
-// Convierte los trazos [[{x,y}...]...] en un SVG (un <path> con un "M ... L ..." por trazo)
+//conversor de lo dibujado a svg
 export function trazosASvg(trazos, ancho, alto) {
     const camino = trazos
         .filter((t) => t.length >= 2)

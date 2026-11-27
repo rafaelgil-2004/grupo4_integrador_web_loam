@@ -2,9 +2,13 @@ import { View } from "react-native";
 import Texto from "../atomos/Texto";
 import FilaConvenio from "../moleculas/FilaConvenio";
 
-// Usa map y no FlatList porque va dentro de un ScrollView (anidar listas virtualizadas da avisos
-// y mala performance). Las pantallas que son solo una lista larga usarán FlatList directamente.
+/*
+datos: lista de convenios sacada de la api
+alAbrir: funcion que se llama al tocar el convenio
+mensajeVacio: lo que se muestra si no tenes nada
+*/
 export default function ListaConvenios({ datos, alAbrir, mensajeVacio, mostrarActualizacion }) {
+    //lista vacia
     if (!datos || datos.length === 0) return <Texto color="textoSuave">{mensajeVacio}</Texto>;
     return (
         <View>

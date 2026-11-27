@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { useConexion } from "../../contexto/ContextoConexion";
 import Texto from "../atomos/Texto";
 
+//caja roja de sin conexion con texto por pagina
 export default function AvisoSinConexion({ detalle }) {
     const { estaConectado } = useConexion();
     if (estaConectado) return null;

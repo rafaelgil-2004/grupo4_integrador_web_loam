@@ -1,5 +1,3 @@
-// Colores del equipo. Los textos sobre el naranja son oscuros porque el blanco no alcanza
-// el contraste mínimo de WCAG (4.5:1). Los bordes cumplen 3:1 contra el fondo.
 export const paletas = {
     claro: {
         fondo: "#FFFFFF", superficie: "#F5F5F5", texto: "#333333", textoSuave: "#626262",

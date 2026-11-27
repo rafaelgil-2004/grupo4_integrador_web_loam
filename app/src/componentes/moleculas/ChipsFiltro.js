@@ -2,10 +2,21 @@ import { Pressable, View } from "react-native";
 import { useTema } from "../../contexto/ContextoTema";
 import Texto from "../atomos/Texto";
 
-// Selección única. Tocar la opción activa la limpia (salvo permiteLimpiar=false)
+/*
+opciones: lista de de objetos valor(traido de la api):texto(lo que se ve en pantalla)
+permiteLimpiar: se puede desmarcar o no
+onCambio
+*/
 export default function ChipsFiltro({ opciones, valor, onCambio, permiteLimpiar = true }) {
     const { colores } = useTema();
     return (
+        /*
+        key: react la necesita para elementos pertenecientes a listas, deve ser unica
+        onCambio:
+            -chip no activo: se elige
+            -activo y permite limpiar: se desmarca
+            -activo y no permite limpiar: no hace nada
+        */
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {opciones.map((o) => {
                 const activa = o.valor === valor;

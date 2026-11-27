@@ -1,3 +1,8 @@
+/*
+se usa esto en vez del text de react para aplicar 
+el estilo tipografico, los colores del tema y el tamano de letra
+que elige el usuario
+*/
 import { Text } from "react-native";
 import { useTema } from "../../contexto/ContextoTema";
 
@@ -8,8 +13,7 @@ const VARIANTES = {
     pequenio: { fontSize: 13 },
 };
 
-// Todo el texto de la app pasa por acá: así el tamaño de letra elegido en el perfil
-// se aplica en todas las pantallas. "color" es una clave de la paleta o un color directo.
+//
 export default function Texto({ variante = "cuerpo", color = "texto", style, children, ...resto }) {
     const { colores, escala } = useTema();
     const base = VARIANTES[variante];

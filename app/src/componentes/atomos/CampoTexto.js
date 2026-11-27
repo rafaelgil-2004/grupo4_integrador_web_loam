@@ -4,9 +4,16 @@ import { useTema } from "../../contexto/ContextoTema";
 import { radio } from "../../tema";
 import Texto from "./Texto";
 
+/*
+las primeras cuatro prop tienen us propia variable
+lo que venga despues se junta todo en resto
+para abarcar todo lo de textimput
+secureTextEntry se deja por la implementacion del mostra/ocultar
+*/
 export default function CampoTexto({ etiqueta, error, secureTextEntry, style, ...resto }) {
-    const { colores, escala } = useTema();
-    const [visible, setVisible] = useState(false);
+    const { colores, escala } = useTema();//escala: tamaño de letra
+    const [visible, setVisible] = useState(false);//se ve o no la contraseña
+    
     return (
         <View style={[{ marginBottom: 16 }, style]}>
             <Texto variante="pequenio" color="textoSuave" style={{ marginBottom: 4 }}>{etiqueta}</Texto>

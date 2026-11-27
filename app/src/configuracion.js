@@ -3,13 +3,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const CLAVE_API_URL = "convenios.apiUrl";
 export const API_URL_POR_DEFECTO = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api";
 
-export const TAMANIO_LISTA = 10;
-export const SEGUNDOS_RECORDATORIO = 20; // para la demo; en uso real serían horas
-
-// La dirección activa vive en memoria: las llamadas a la API la leen con obtenerApiUrl()
+// La dirección activa vive en memoria
 let apiUrlActual = API_URL_POR_DEFECTO;
 
-// Se llama una vez al arrancar: recupera la dirección que se haya configurado en el celular
+//recupera la dirección que se haya configurado en el celular
 export async function cargarApiUrl() {
     const guardada = await AsyncStorage.getItem(CLAVE_API_URL);
     if (guardada) apiUrlActual = guardada;
@@ -31,10 +28,10 @@ export async function guardarApiUrl(url) {
 //1 minutos, 2 horas, 1 dia
 export const RECORDATORIOS_MINUTOS = [1, 120, 1440];
 
-//cosas de conexion 
+//claves de los servidores guardados
 const CLAVE_SERVIDORES = "convenios.servidores";
 
-// La primera vez ofrece el atajo para el cable USB (adb reverse); el resto lo agrega el usuario
+// La primera vez ofrece el atajo para el cable USB
 const SERVIDORES_INICIALES = [{ nombre: "USB (adb reverse)", url: "http://localhost:8080/api" }];
 
 const normalizarUrl = (url) => url.trim().replace(/\/+$/, "");

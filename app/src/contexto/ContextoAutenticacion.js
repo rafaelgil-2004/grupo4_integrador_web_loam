@@ -3,36 +3,37 @@ import { fijarToken, registrarAlVencerSesion, obtenerDatosUsuario } from "../ser
 import { guardarSesion, leerSesion, borrarSesion, guardarFoto, leerFoto, borrarCache } from "../servicios/almacenamiento";
 import * as FileSystem from "expo-file-system/legacy";
 
+//crea el contexto(mochila)
 const Contexto = createContext(null);
 
+//llenar el contexto(cargar la mochila)
 export function ProveedorAutenticacion({ children }) {
     const [usuario, setUsuario] = useState(null);
     const [cargando, setCargando] = useState(true);
     const [foto, setFoto] = useState(null);
 
     const cerrarSesion = useCallback(async () => {
-        fijarToken(null);
-        setUsuario(null);
-        await borrarSesion();
+        fijarToken(null);//borrar token de memoria
+        setUsuario(null);//volver al login
+        await borrarSesion();//borrar los datos estaticos
         await borrarCache();
     }, []);
 
-    // La pantalla de login primero verifica credenciales y código; recién ahí llama a esto
+    //guarda el token e inicia secion
     const confirmarSesion = useCallback(async ({ token, usuario: datosUsuario }) => {
         fijarToken(token);
         await guardarSesion(token, datosUsuario);
         setUsuario(datosUsuario);
     }, []);
 
+    //hay o no sesion, lo que usa cuando se habre la app
     useEffect(() => {
-        registrarAlVencerSesion(cerrarSesion); // un 401 en cualquier llamada cierra la sesión
+        registrarAlVencerSesion(cerrarSesion); // un 401 cierra la sesión
         (async () => {
             const guardada = await leerSesion();
             if (guardada) {
                 fijarToken(guardada.token);
-                setUsuario(guardada.usuario); // se entra ya con lo guardado: sirve sin conexión
-                // Se refresca en segundo plano. Si el token venció, el 401 cierra la sesión;
-                // si no hay red, el error se ignora y se sigue con los datos guardados.
+                setUsuario(guardada.usuario);
                 obtenerDatosUsuario()
                     .then((actualizado) => { setUsuario(actualizado); return guardarSesion(guardada.token, actualizado); })
                     .catch(() => {});
@@ -41,13 +42,11 @@ export function ProveedorAutenticacion({ children }) {
         })();
     }, [cerrarSesion]);
 
-    // Carga la foto del usuario que inició sesión
+    // Carga la foto del usuario 
     useEffect(() => {
         if (usuario?.id) leerFoto(usuario.id).then(setFoto); else setFoto(null);
     }, [usuario?.id]);
 
-    // La copia al almacenamiento de la app evita perder la foto cuando el sistema limpia el uri temporal.
-    // Nombre con marca de tiempo: así Image no muestra la versión anterior en caché.
     const cambiarFoto = useCallback(async (uriTemporal) => {
         const destino = `${FileSystem.documentDirectory}foto-${usuario.id}-${Date.now()}.jpg`;
         await FileSystem.copyAsync({ from: uriTemporal, to: destino });
@@ -56,9 +55,11 @@ export function ProveedorAutenticacion({ children }) {
         setFoto(destino);
     }, [usuario?.id, foto]);
 
+    //control de cambio, cuando uno de los valores cambia redibuja a todos los que leen el contexto
     const valor = useMemo(() => ({ usuario, foto, cargando, confirmarSesion, cerrarSesion, cambiarFoto }),
         [usuario, foto, cargando, confirmarSesion, cerrarSesion, cambiarFoto]);
     return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
+//hook
 export const useAutenticacion = () => useContext(Contexto);

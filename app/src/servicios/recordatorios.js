@@ -2,7 +2,7 @@ import * as Notifications from "expo-notifications";
 import { RECORDATORIOS_MINUTOS } from "../configuracion";
 import { TIPOS_NOTIFICACION } from "./notificaciones";
 
-// Identificadores fijos: así se cancelan solo los recordatorios y no otras notificaciones programadas (la simulación)
+//identificador del recordatorio
 const idDe = (i) => `recordatorio-${i}`;
 
 export async function programarRecordatorios(cantidad) {

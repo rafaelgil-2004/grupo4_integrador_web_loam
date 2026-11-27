@@ -4,6 +4,9 @@ import Texto from "../atomos/Texto";
 import Insignia from "../atomos/Insignia";
 import { formatearFechaHora } from "../../utilidades";
 
+/*
+convenio: el que devuelve la api
+*/
 export default function FilaConvenio({ convenio, onPress, mostrarActualizacion = false }) {
     const { colores } = useTema();
     return (

@@ -9,21 +9,23 @@ import CampoTexto from "../atomos/CampoTexto";
 
 export default function SelectorServidor() {
     const { colores } = useTema();
-    const [abierto, setAbierto] = useState(false);
-    const [servidores, setServidores] = useState([]);
-    const [activo, setActivo] = useState(obtenerApiUrl());
+    const [abierto, setAbierto] = useState(false); //panel desplegado
+    const [servidores, setServidores] = useState([]);//lista de servidores guardados
+    const [activo, setActivo] = useState(obtenerApiUrl());//direccion selecionada
     const [nombre, setNombre] = useState("");
     const [url, setUrl] = useState("");
-    const [estado, setEstado] = useState(null);
+    const [estado, setEstado] = useState(null);//prueva de conexion
 
+    //cargar la lista
     useEffect(() => { leerServidores().then(setServidores); }, []);
 
-    // guardarApiUrl actualiza la dirección en memoria: la siguiente llamada a la API ya usa la nueva
+    //cambia la direccion en uso
     async function usar(direccion) {
         setActivo(await guardarApiUrl(direccion));
         setEstado(null);
     }
 
+    //guardar un servidor nuevo
     async function agregar() {
         if (!url.trim()) return;
         setServidores(await guardarServidor(nombre, url));
@@ -31,8 +33,7 @@ export default function SelectorServidor() {
         setNombre(""); setUrl("");
     }
 
-    // Consulta un endpoint público (la documentación de la API) con 5 s de espera.
-    // Cualquier respuesta del servidor, incluso 401 o 403, prueba que la red y la IP están bien.
+    //prueva de conexion
     async function probar() {
         setEstado("Probando...");
         const controlador = new AbortController();

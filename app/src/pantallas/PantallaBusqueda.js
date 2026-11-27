@@ -31,12 +31,13 @@ export default function PantallaBusqueda({ route, navigation }) {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState(null);
 
-    // El encabezado y las tarjetas del Inicio navegan acá con parámetros; "momento" cambia en cada envío
+    //si se abre con una busqueda ya echa
     useEffect(() => {
         const p = route.params;
         if (p?.momento) setFiltros({ texto: p.texto ?? "", estado: p.estado ?? null, vigencia: p.vigencia ?? null });
     }, [route.params?.momento]);
 
+    //pedir los datos al servidor
     const cargar = useCallback(async (nuevaPagina = 0) => {
         if (!estaConectado) return;
         setCargando(true);
@@ -55,6 +56,7 @@ export default function PantallaBusqueda({ route, navigation }) {
         finally { setCargando(false); }
     }, [filtros, modo, estaConectado]);
 
+    //vuelve abuscar cuando se hace un cambio(conexion, filtro)
     useEffect(() => { cargar(0); }, [cargar]);
 
     const abrirConvenio = (c) => navigation.navigate("Detalle", { id: c.id });

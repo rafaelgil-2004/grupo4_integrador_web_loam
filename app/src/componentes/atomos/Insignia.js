@@ -1,7 +1,8 @@
 import { View } from "react-native";
 import Texto from "./Texto";
 
-// Los colores no cambian con el tema: son semánticos y todos cumplen contraste AA con su texto
+//pastillas de los estados del convenio
+//los colores no dependen del tema
 const ESTADOS = {
     BORRADOR:   { texto: "Borrador",   fondo: "#6C757D", color: "#FFFFFF" },
     ACEPTADO:   { texto: "Aceptado",   fondo: "#0B5ED7", color: "#FFFFFF" },
@@ -13,10 +14,10 @@ const ESTADOS = {
     EXPIRADO:   { texto: "Vencido",    fondo: "#B02A37", color: "#FFFFFF" },
 };
 
-// Sirve tanto para el estado del convenio como para su vigencia (son claves distintas)
+//alignself: flex-start hace que mida lo que ocupa el texto y no todo el ancho
 export default function Insignia({ valor }) {
     const datos = ESTADOS[valor];
-    if (!datos) return null; // por ejemplo SIN_VENCIMIENTO: no lleva insignia
+    if (!datos) return null; //SIN_VENCIMIENTO no lleva insignia
     return (
         <View style={{ backgroundColor: datos.fondo, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 2, alignSelf: "flex-start" }}>
             <Texto variante="pequenio" color={datos.color} style={{ fontWeight: "600" }}>{datos.texto}</Texto>
